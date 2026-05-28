@@ -49,6 +49,17 @@ namespace cli {
         return true;
     }
 
-    
+    bool parse_get(std::istringstream &iss, std::string &key){
+        if (!(iss >> key)){
+            std::cerr << "Error GET requires a key\n";
+            return false;
+        }
+        std::string next;
+        if(iss >> next){
+            std::cerr << "Error: syntax error \n";
+            return false;
+        }
+        return true;
+    }
 
 }

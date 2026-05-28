@@ -36,7 +36,15 @@ int main (){
             kv.set(key, value);
             cout << "OK\n";
         }else if (cmd == "GET"){
-            continue;
+            string key;
+            
+            if (!cli::parse_get(iss, key)){
+                continue;
+            }
+            auto result = kv.get(key);
+            string value = result? *result : "nil";
+            cout << value << '\n';
+            
         }else if (cmd == "DEL"){
             continue;
         }else if (cmd == "QUIT"){
