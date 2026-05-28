@@ -1,61 +1,71 @@
-#include <iostream>
 #include <cctype>
+#include <iostream>
 #include <sstream>
-#include <algorithm>
+#include <string>
 
-#include "../internal/store/store.hpp"
-#include "../internal/cli/parser.hpp"
+#include "store.hpp"
+#include "parser.hpp"
 
-using namespace std;
 
-static inline string to_upper(string s) {
-  transform(s.begin(), s.end(), s.begin(),[](unsigned char c) { return toupper(c); });
-  return s;
-}
+int main() {
+    KVStore kv_store;
 
-int main (){
-    KVStore kv;
-    string line;
-    while (true){
-        cout << "> ";
-        if (!getline(cin, line)) break;
+    std::string command_line;
 
-        istringstream iss(line);
-        string cmd;
+    while (true) {
+        std::cout << "> ";
 
-        if (!(iss >> cmd)) continue;
-
-        cmd = to_upper(cmd);
-        if (cmd == "SET"){
-            string key;
-            string value;
-
-            if (!cli::parse_set(iss, key, value)){
-                continue;
-            }
-            kv.set(key, value);
-            cout << "OK\n";
-        }else if (cmd == "GET"){
-            string key;
-            
-            if (!cli::parse_get(iss, key)){
-                continue;
-            }
-            auto result = kv.get(key);
-            string value = result? *result : "nil";
-            cout << value << '\n';
-            
-        }else if (cmd == "DEL"){
-            continue;
-        }else if (cmd == "QUIT"){
+        // Stop the CLI if input is closed, for example with Ctrl+D.
+        if (!std::getline(std::cin, command_line)) {
             break;
-        }else{
-            cerr << " ERR unknown command "<< cmd << ", with args beginning with:\n";
-            continue;
         }
 
+        std::istringstream input_stream(command_line);
+
+        std::string command;
+        if (!(input_stream >> command)) {
+            continue; // Ignore empty lines.
+        }
+
+        command = cli::to_upper(command);
+
+        if (command == "SET") {
+            std::string key;
+            std::string value;
+
+            if (!cli::parse_set(input_stream, key, value)) {
+                continue;
+            }
+
+            kv_store.set(key, value);
+            std::cout << "OK\n";
+
+        } else if (command == "GET") {
+            std::string key;
+
+            if (!cli::parse_get(input_stream, key)) {
+                continue;
+            }
+
+            auto result = kv_store.get(key);
+
+            if (result) {
+                std::cout << *result << '\n';
+            } else {
+                std::cout << "nil\n";
+            }
+
+        } else if (command == "DEL") {
+            std::cerr << "Error: DEL not implemented yet\n";
+
+        } else if (command == "QUIT" || command == "EXIT") {
+            break;
+
+        } else {
+            std::cerr << "Error: unknown command '" << command << "'\n";
+        }
     }
-    cout << "Exiting... \n";
+
+    std::cout << "Exiting...\n";
     return 0;
 }
-
