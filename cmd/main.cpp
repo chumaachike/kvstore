@@ -93,7 +93,38 @@ int main() {
                 std::cerr << "Error: value is not an integer or out of range \n";
             }
 
-        }else if (command == "QUIT" || command == "EXIT") {
+        }else if (command == "DECR") {
+            std::string key;
+
+            if (!cli::parse_decr(input_stream, key)) {
+                continue;
+            }
+
+            auto result = kv_store.increase_by(key, -1);
+
+            if (result) {
+                std::cout << *result << '\n';
+            } else {
+                std::cerr << "Error: value is not an integer or out of range\n";
+            }
+
+        }else if (command == "DECRBY") {
+            std::string key;
+            int amount = 0;
+
+            if (!cli::parse_decrby(input_stream, key, amount)) {
+                continue;
+            }
+
+            auto result = kv_store.increase_by(key, -amount);
+
+            if (result) {
+                std::cout << *result << '\n';
+            } else {
+                std::cerr << "Error: value is not an integer or out of range\n";
+            }
+        }
+        else if (command == "QUIT" || command == "EXIT") {
             break;
 
         } else {

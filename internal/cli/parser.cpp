@@ -150,4 +150,41 @@ namespace cli {
     return true;
 }
 
+bool parse_decr(std::istringstream &iss, std::string &key){
+    // DECR requires:
+    // DECR <key>
+    if (!(iss >> key)) {
+        std::cerr << "Error: DECR requires a key\n";
+        return false;
+    }
+
+    std::string extra_token;
+    if (iss >> extra_token){
+        std::cerr << "Error syntax error\n";
+        return false;
+    }
+    return true;
+    }
+bool parse_decrby(std::istringstream& iss, std::string& key, int& amount) {
+    // DECRBY requires:
+    // DECRBY <key> <amount>
+    if (!(iss >> key)) {
+        std::cerr << "Error: DECRBY requires a key\n";
+        return false;
+    }
+
+    if (!(iss >> amount)) {
+        std::cerr << "Error: DECRBY requires an integer\n";
+        return false;
+    }
+
+    std::string extra_token;
+    if (iss >> extra_token) {
+        std::cerr << "Error: syntax error\n";
+        return false;
+    }
+
+    return true;
+}
+
 }
