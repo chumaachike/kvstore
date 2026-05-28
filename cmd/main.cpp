@@ -78,6 +78,21 @@ int main() {
                 std::cout << "Error: value is not an integer or out of range\n";
             }
 
+        }else if (command == "INCR"){
+            std::string key;
+
+            if (!cli::parse_incr(input_stream, key)){
+                continue;
+            }
+
+            auto result = kv_store.increase_by(key, 1);
+
+            if (result){
+                std::cout << *result << '\n';
+            }else {
+                std::cerr << "Error: value is not an integer or out of range \n";
+            }
+
         }else if (command == "QUIT" || command == "EXIT") {
             break;
 

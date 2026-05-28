@@ -10,4 +10,5 @@ namespace cli {
     bool parse_get(std::istringstream& iss, std::string& key);
     bool parse_del(std::istringstream& iss, std::vector<std::string>& keys);
     bool parse_incrby(std::istringstream& iss, std::string& key, int& num);
+    bool parse_incr(std::istringstream& iss, std::string& key);
 }
