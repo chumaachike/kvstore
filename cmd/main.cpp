@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "../internal/store/store.hpp"
+#include "../internal/cli/parser.hpp"
 
 using namespace std;
 
@@ -26,7 +27,14 @@ int main (){
 
         cmd = to_upper(cmd);
         if (cmd == "SET"){
-            continue;
+            string key;
+            string value;
+
+            if (!cli::parse_set(iss, key, value)){
+                continue;
+            }
+            kv.set(key, value);
+            cout << "OK\n";
         }else if (cmd == "GET"){
             continue;
         }else if (cmd == "DEL"){
