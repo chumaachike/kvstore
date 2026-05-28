@@ -61,11 +61,24 @@ int main() {
             if(!cli::parse_del(input_stream, keys)){
                 continue;
             }
-            
+
             std::size_t removed_count = kv_store.remove(keys);
             std::cout << removed_count << '\n';
 
-        } else if (command == "QUIT" || command == "EXIT") {
+        } else if (command == "INCRBY"){
+            std::string key;
+            int amount =0;
+            if (!cli::parse_incrby(input_stream, key, amount)) continue;
+
+            auto result = kv_store.increase_by(key,  amount);
+            
+            if (result){
+                std::cout << *result << '\n';
+            }else{
+                std::cout << "Error: value is not an integer or out of range\n";
+            }
+
+        }else if (command == "QUIT" || command == "EXIT") {
             break;
 
         } else {

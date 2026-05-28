@@ -11,6 +11,7 @@ class KVStore {
     std::optional<std::string> get(const std::string& key)const;
     bool exists(const std::string& key)const;
     std::size_t remove(const std::vector< std::string>& keys);
+    std::optional<int>increase_by(const std::string& key, int num);
     private:
     std::unordered_map<std::string, std::string>store;
 

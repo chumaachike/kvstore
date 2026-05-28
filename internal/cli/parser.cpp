@@ -107,5 +107,28 @@ namespace cli {
         return true;
 
     }
+    bool parse_incrby(std::istringstream& iss,
+                  std::string& key,
+                  int& amount) {
+    // INCRBY requires:
+    // INCRBY <key> <amount>
+    if (!(iss >> key)) {
+        std::cerr << "Error: INCRBY requires a key\n";
+        return false;
+    }
+
+    if (!(iss >> amount)) {
+        std::cerr << "Error: INCRBY requires an integer\n";
+        return false;
+    }
+
+    std::string extra_token;
+    if (iss >> extra_token) {
+        std::cerr << "Error: syntax error\n";
+        return false;
+    }
+
+    return true;
+    }
 
 }
