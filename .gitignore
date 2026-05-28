@@ -1,0 +1,69 @@
+# =========================
+# Build artifacts (CMake)
+# =========================
+build/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+CTestTestfile.cmake
+install_manifest.txt
+
+# =========================
+# Compiled objects / binaries
+# =========================
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+
+# =========================
+# Debug / profiling output
+# =========================
+*.log
+*.prof
+*.gcda
+*.gcno
+*.gcov
+
+# =========================
+# Editor / IDE files
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# =========================
+# OS-specific files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Test / coverage output
+# =========================
+coverage/
+lcov.info
+
+# =========================
+# Package managers / deps
+# =========================
+vcpkg_installed/
+conan.lock
+conanbuildinfo.*
+conaninfo.txt
+
+# =========================
+# Temporary / misc
+# =========================
+tmp/
+temp/
+.cache/
