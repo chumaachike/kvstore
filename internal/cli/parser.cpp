@@ -92,4 +92,20 @@ namespace cli {
         return true;
     }
 
+    bool parse_del(std::istringstream& iss, std::vector<std::string>& keys){
+        // DEL requires at least:
+        // DEL <key>
+        std::string key;
+
+        while (iss >> key){
+            keys.push_back(key);
+        }
+        if (keys.empty()){
+            std::cerr << "Error: DEL requires at least one key\n";
+            return false;
+        }
+        return true;
+
+    }
+
 }

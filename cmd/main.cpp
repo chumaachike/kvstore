@@ -56,7 +56,14 @@ int main() {
             }
 
         } else if (command == "DEL") {
-            std::cerr << "Error: DEL not implemented yet\n";
+            std::vector<std::string>keys;
+
+            if(!cli::parse_del(input_stream, keys)){
+                continue;
+            }
+            
+            std::size_t removed_count = kv_store.remove(keys);
+            std::cout << removed_count << '\n';
 
         } else if (command == "QUIT" || command == "EXIT") {
             break;

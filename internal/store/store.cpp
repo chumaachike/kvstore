@@ -18,10 +18,6 @@ KVStore::get(const std::string& key) const {
     return std::nullopt;
 }
 
-bool KVStore::remove(const std::string& key) {
-    return store.erase(key) > 0;
-}
-
 std::size_t
 KVStore::remove(const std::vector<std::string>& keys) {
 
