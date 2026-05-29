@@ -7,6 +7,28 @@
 
 namespace cli {
 
+    std::string error_message(ParseError error) {
+    switch (error) {
+        case ParseError::MissingKey:
+            return "Error: missing key";
+
+        case ParseError::MissingValue:
+            return "Error: missing value";
+
+        case ParseError::InvalidInteger:
+            return "Error: invalid integer";
+
+        case ParseError::ExtraTokens:
+            return "Error: syntax error";
+
+        case ParseError::UnterminatedQuote:
+            return "Error: unterminated quote";
+
+        default:
+            return "";
+    }
+}
+
     Command parse_command_type(std::string command) {
     command = to_upper(command);
 
@@ -37,13 +59,12 @@ namespace cli {
         return !iss.eof();
     }
     
-    bool parse_set(std::istringstream &iss, std::string &key, std::string &value) {
+    ParseError parse_set(std::istringstream &iss, std::string &key, std::string &value) {
 
         // SET requires at least:
         // SET <key> <value>
         if (!(iss >> key)){
-            std::cerr << "Error: SET requires a key and a value\n";
-            return false;
+            return ParseError::MissingKey;
         }
 
         // Quoted values allow spaces:
@@ -59,8 +80,7 @@ namespace cli {
             std::size_t closing_quote_pos = remaining_input.find('"');
 
             if (closing_quote_pos == std::string::npos){
-                std::cerr << "Error: missing closing quote\n";
-                return false;
+                return ParseError::UnterminatedQuote;
             }
             value = remaining_input.substr(0, closing_quote_pos);
             
@@ -70,43 +90,39 @@ namespace cli {
 
             // Reject extra tokens:
             if (extra_token(trailing_stream)) {
-                std::cerr << "Error: syntax error\n";
-                return false;
+                return ParseError::ExtraTokens;
             }
 
-            return true;
+            return ParseError::None;
         }
 
         // Non-quoted values cannot contain spaces
         if (!(iss >> value)){
-            std::cerr << "Error: SET requires a value\n";
-            return false;
+            return ParseError::MissingValue;
         }
 
             if (extra_token(iss)){
-                std::cerr << "Error: syntax error\n";
-                return false;
+                return ParseError::ExtraTokens;
             }
 
-        return true;
+        return ParseError::None;
     }
 
-    bool parse_get(std::istringstream &iss, std::string &key){
+    ParseError parse_get(std::istringstream &iss, std::string &key){
         // GET requires at least:
         // GET <key>
         if (!(iss >> key)){
-            std::cerr << "Error GET requires a key\n";
-            return false;
+            return ParseError::MissingKey;
         }
 
         if (extra_token(iss)){
             std::cerr << "Error: syntax error\n";
-            return false;
+            return ParseError::ExtraTokens;
         }
-        return true;
+        return ParseError::None;
     }
 
-    bool parse_del(std::istringstream& iss, std::vector<std::string>& keys){
+    ParseError parse_del(std::istringstream& iss, std::vector<std::string>& keys){
         // DEL requires at least:
         // DEL <key>
         std::string key;
@@ -115,107 +131,91 @@ namespace cli {
             keys.push_back(key);
         }
         if (keys.empty()){
-            std::cerr << "Error: DEL requires at least one key\n";
-            return false;
+            return ParseError::MissingKey;
         }
-        return true;
+        return ParseError::None;
 
     }
-    bool parse_incrby(std::istringstream& iss,
-                  std::string& key,
-                  int& amount) {
+    ParseError parse_incrby(std::istringstream& iss, std::string& key, int& amount) {
     // INCRBY requires:
     // INCRBY <key> <amount>
     if (!(iss >> key)) {
-        std::cerr << "Error: INCRBY requires a key\n";
-        return false;
+        return ParseError::MissingKey;
     }
 
     if (!(iss >> amount)) {
-        std::cerr << "Error: INCRBY requires an integer\n";
-        return false;
+        return ParseError::MissingValue;
     }
 
     if (extra_token(iss)){
-        std::cerr << "Error: syntax error\n";
-        return false;
+        return ParseError::ExtraTokens;
     }
 
-    return true;
+    return ParseError::None;
     }
 
-    bool parse_incr(std::istringstream& iss,
-                std::string& key) {
+    ParseError parse_incr(std::istringstream& iss, std::string& key) {
 
     // INCR requires:
     // INCR <key>
     if (!(iss >> key)) {
-        std::cerr << "Error: INCR requires a key\n";
-        return false;
+        return ParseError::MissingKey;
     }
 
     if (extra_token(iss)){
-        std::cerr << "Error: syntax error\n";
-        return false;
+       return ParseError::ExtraTokens;
     }
 
-    return true;
+    return ParseError::None;
 }
 
-bool parse_decr(std::istringstream &iss, std::string &key){
+ParseError parse_decr(std::istringstream &iss, std::string &key){
     // DECR requires:
     // DECR <key>
     if (!(iss >> key)) {
-        std::cerr << "Error: DECR requires a key\n";
-        return false;
+        return ParseError::MissingKey;
     }
 
     if (extra_token(iss)){
-        std::cerr << "Error: syntax error\n";
-        return false;
+       return ParseError::ExtraTokens;
     }
 
-    return true;
+    return ParseError::None;
     }
-bool parse_decrby(std::istringstream& iss, std::string& key, int& amount) {
+
+ParseError parse_decrby(std::istringstream& iss, std::string& key, int& amount) {
     // DECRBY requires:
     // DECRBY <key> <amount>
     if (!(iss >> key)) {
-        std::cerr << "Error: DECRBY requires a key\n";
-        return false;
+        return ParseError::MissingKey;
     }
 
     if (!(iss >> amount)) {
-        std::cerr << "Error: DECRBY requires an integer\n";
-        return false;
+        return ParseError::MissingValue;
     }
 
     if (extra_token(iss)){
-        std::cerr << "Error: syntax error\n";
-        return false;
+        return ParseError::ExtraTokens;
     }
 
-    return true;
+    return ParseError::None;
 }
 
-bool parse_append(std::istringstream &iss, std::string &key, std::string &value){
+ParseError parse_append(std::istringstream &iss, std::string &key, std::string &value){
     // APPEND requires:
     // APPEND <key> <value>
     if (!(iss >> key)){
-        std::cerr << "Error APPEND requires a key\n";
-        return false;
+        return ParseError::MissingKey;
     }
     if (!(iss >> value)){
-        std::cerr << "Error APPEND requires a value\n";
-        return false;
+        return ParseError::MissingValue;
     }
 
     if (extra_token(iss)){
-        std::cerr << "Error: syntax error\n";
-        return false;
+        return ParseError::ExtraTokens;
     }
 
-    return true;
+    return ParseError::None;
 }
 
 }

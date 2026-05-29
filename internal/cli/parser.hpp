@@ -17,15 +17,26 @@ enum class Command {
     Unknown
 };
 
+
+
 namespace cli {
+    enum class ParseError {
+    None,
+    MissingKey,
+    MissingValue,
+    InvalidInteger,
+    ExtraTokens,
+    UnterminatedQuote
+};
+    std::string error_message(ParseError error);
     std::string to_upper(std::string text);
-    bool parse_set(std::istringstream& iss, std::string& key, std::string& value);
-    bool parse_get(std::istringstream& iss, std::string& key);
-    bool parse_del(std::istringstream& iss, std::vector<std::string>& keys);
-    bool parse_incrby(std::istringstream& iss, std::string& key, int& num);
-    bool parse_incr(std::istringstream& iss, std::string& key);
-    bool parse_decr(std::istringstream& iss, std::string& key);
-    bool parse_decrby(std::istringstream& iss, std::string& key, int& amount);
-    bool parse_append(std::istringstream& iss, std::string& key, std::string& value);
+    ParseError parse_set(std::istringstream& iss, std::string& key, std::string& value);
+    ParseError parse_get(std::istringstream& iss, std::string& key);
+    ParseError parse_del(std::istringstream& iss, std::vector<std::string>& keys);
+    ParseError parse_incrby(std::istringstream& iss, std::string& key, int& num);
+    ParseError parse_incr(std::istringstream& iss, std::string& key);
+    ParseError parse_decr(std::istringstream& iss, std::string& key);
+    ParseError parse_decrby(std::istringstream& iss, std::string& key, int& amount);
+    ParseError parse_append(std::istringstream& iss, std::string& key, std::string& value);
     Command parse_command_type(std::string command);
 }

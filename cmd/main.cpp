@@ -8,6 +8,7 @@
 #include "parser.hpp"
 
 
+
 int main() {
     KVStore kv_store;
     std::string command_line;
@@ -32,8 +33,10 @@ int main() {
             case Command::Set: {
                 std::string key;
                 std::string value;
-
-                if (!cli::parse_set(input_stream, key, value)) {
+                
+                auto err = cli::parse_set(input_stream, key, value);
+                if (err != cli::ParseError::None) {
+                    std::cerr << cli::error_message(err) << '\n';
                     continue;
                 }
 
@@ -45,7 +48,9 @@ int main() {
             case Command::Get: {
                 std::string key;
 
-                if (!cli::parse_get(input_stream, key)) {
+                auto err = cli::parse_get(input_stream, key);
+                if (err != cli::ParseError::None) {
+                    std::cerr << cli::error_message(err) << '\n';
                     continue;
                 }
 
@@ -62,8 +67,10 @@ int main() {
 
             case Command::Del: {
                 std::vector<std::string> keys;
-
-                if (!cli::parse_del(input_stream, keys)) {
+                
+                auto err = cli::parse_del(input_stream, keys);
+                if (err != cli::ParseError::None) {
+                    std::cerr << cli::error_message(err) << '\n';
                     continue;
                 }
 
@@ -76,8 +83,10 @@ int main() {
                 std::string key;
                 int amount = 0;
 
-                if (!cli::parse_incrby(input_stream, key, amount)) {
-                    continue;
+                auto err = cli::parse_incrby(input_stream, key, amount);
+                if (err != cli::ParseError::None) {
+                   std::cerr << cli::error_message(err) << '\n';
+                   continue;
                 }
 
                 auto result = kv_store.increase_by(key, amount);
@@ -94,7 +103,9 @@ int main() {
             case Command::Incr: {
                 std::string key;
 
-                if (!cli::parse_incr(input_stream, key)) {
+                auto err = cli::parse_incr(input_stream, key);
+                if (err != cli::ParseError::None) {
+                    std::cerr << cli::error_message(err) << '\n';
                     continue;
                 }
 
@@ -112,7 +123,9 @@ int main() {
             case Command::Decr: {
                 std::string key;
 
-                if (!cli::parse_decr(input_stream, key)) {
+                auto err = cli::parse_decr(input_stream, key);
+                if (err != cli::ParseError::None) {
+                    std::cerr << cli::error_message(err) << '\n';
                     continue;
                 }
 
@@ -131,7 +144,9 @@ int main() {
                 std::string key;
                 int amount = 0;
 
-                if (!cli::parse_decrby(input_stream, key, amount)) {
+                auto err = cli::parse_decrby(input_stream, key, amount);
+                if (err != cli::ParseError::None) {
+                    std::cerr << cli::error_message(err) << '\n';
                     continue;
                 }
 
@@ -150,7 +165,9 @@ int main() {
                 std::string key;
                 std::string value;
 
-                if (!cli::parse_append(input_stream, key, value)) {
+                auto err = cli::parse_append(input_stream, key, value);
+                if (err != cli::ParseError::None) {
+                    std::cerr << cli::error_message(err) << '\n';
                     continue;
                 }
 
