@@ -187,4 +187,24 @@ bool parse_decrby(std::istringstream& iss, std::string& key, int& amount) {
     return true;
 }
 
+bool parse_append(std::istringstream &iss, std::string &key, std::string &value){
+    // APPEND requires:
+    // APPEND <key> <value>
+    if (!(iss >> key)){
+        std::cerr << "Error APPEND requires a key\n";
+        return false;
+    }
+    if (!(iss >> value)){
+        std::cerr << "Error APPEND requires a value\n";
+        return false;
+    }
+
+    std::string extra_token;
+    if (iss >> extra_token) {
+        std::cerr << "Error: syntax error\n";
+        return false;      
+    }
+    return true;
+}
+
 }

@@ -13,4 +13,5 @@ namespace cli {
     bool parse_incr(std::istringstream& iss, std::string& key);
     bool parse_decr(std::istringstream& iss, std::string& key);
     bool parse_decrby(std::istringstream& iss, std::string& key, int& amount);
+    bool parse_append(std::istringstream& iss, std::string& key, std::string& value);
 }

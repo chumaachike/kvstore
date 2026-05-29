@@ -123,8 +123,15 @@ int main() {
             } else {
                 std::cerr << "Error: value is not an integer or out of range\n";
             }
-        }
-        else if (command == "QUIT" || command == "EXIT") {
+        }else if(command == "APPEND"){
+            std::string key;
+            std::string value;
+
+            if (!cli::parse_append(input_stream, key, value)){
+                continue;
+            }
+            std::string result = kv_store.append(key, value);
+        }else if (command == "QUIT" || command == "EXIT") {
             break;
 
         } else {

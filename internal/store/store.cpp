@@ -58,3 +58,15 @@ std::optional<int> KVStore::increase_by(const std::string& key, int amount) {
         return std::nullopt;
     } 
 }
+
+std::string KVStore::append(const std::string& key, const std::string& value) {
+    auto it = store.find(key);
+
+    if (it == store.end()) {
+        store.emplace(key, value);
+        return value;
+    }
+
+    it->second.append(value);
+    return it->second;
+}
