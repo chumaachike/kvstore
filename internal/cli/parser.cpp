@@ -1,23 +1,25 @@
-#include "parser.hpp"
-
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <cctype>
+
+#include "parser.hpp"
 
 namespace cli {
 
     std::string to_upper(std::string text) {
-    std::transform(
-        text.begin(),
-        text.end(),
-        text.begin(),
-        [](unsigned char character) {
+    std::transform(text.begin(), text.end(), text.begin(), [](unsigned char character) {
             return std::toupper(character);
         }
     );
 
     return text;
 }
+
+    bool extra_token(std::istringstream& iss) {
+        iss >> std::ws;
+        return !iss.eof();
+    }
     
     bool parse_set(std::istringstream &iss, std::string &key, std::string &value) {
 
@@ -50,8 +52,8 @@ namespace cli {
             std::string trailing = remaining_input.substr(closing_quote_pos +1);
             std::istringstream trailing_stream(trailing);
 
-            std::string extra_token;
-            if (trailing_stream >> extra_token){
+            // Reject extra tokens:
+            if (extra_token(trailing_stream)) {
                 std::cerr << "Error: syntax error\n";
                 return false;
             }
@@ -65,13 +67,10 @@ namespace cli {
             return false;
         }
 
-        // Reject extra tokens:
-        // SET name Bob extra
-        std::string extra_token;
-        if (iss >> extra_token){
-            std::cerr << "Error: syntax error\n";
-            return false;
-        }
+            if (extra_token(iss)){
+                std::cerr << "Error: syntax error\n";
+                return false;
+            }
 
         return true;
     }
@@ -83,10 +82,9 @@ namespace cli {
             std::cerr << "Error GET requires a key\n";
             return false;
         }
-        // Reject extra tokens:
-        std::string next;
-        if(iss >> next){
-            std::cerr << "Error: syntax error \n";
+
+        if (extra_token(iss)){
+            std::cerr << "Error: syntax error\n";
             return false;
         }
         return true;
@@ -122,8 +120,7 @@ namespace cli {
         return false;
     }
 
-    std::string extra_token;
-    if (iss >> extra_token) {
+    if (extra_token(iss)){
         std::cerr << "Error: syntax error\n";
         return false;
     }
@@ -141,8 +138,7 @@ namespace cli {
         return false;
     }
 
-    std::string extra_token;
-    if (iss >> extra_token) {
+    if (extra_token(iss)){
         std::cerr << "Error: syntax error\n";
         return false;
     }
@@ -158,11 +154,11 @@ bool parse_decr(std::istringstream &iss, std::string &key){
         return false;
     }
 
-    std::string extra_token;
-    if (iss >> extra_token){
-        std::cerr << "Error syntax error\n";
+    if (extra_token(iss)){
+        std::cerr << "Error: syntax error\n";
         return false;
     }
+
     return true;
     }
 bool parse_decrby(std::istringstream& iss, std::string& key, int& amount) {
@@ -178,8 +174,7 @@ bool parse_decrby(std::istringstream& iss, std::string& key, int& amount) {
         return false;
     }
 
-    std::string extra_token;
-    if (iss >> extra_token) {
+    if (extra_token(iss)){
         std::cerr << "Error: syntax error\n";
         return false;
     }
@@ -199,11 +194,11 @@ bool parse_append(std::istringstream &iss, std::string &key, std::string &value)
         return false;
     }
 
-    std::string extra_token;
-    if (iss >> extra_token) {
+    if (extra_token(iss)){
         std::cerr << "Error: syntax error\n";
-        return false;      
+        return false;
     }
+
     return true;
 }
 
