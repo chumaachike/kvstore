@@ -7,6 +7,22 @@
 
 namespace cli {
 
+    Command parse_command_type(std::string command) {
+    command = to_upper(command);
+
+    if (command == "SET") return Command::Set;
+    if (command == "GET") return Command::Get;
+    if (command == "DEL") return Command::Del;
+    if (command == "INCR") return Command::Incr;
+    if (command == "INCRBY") return Command::IncrBy;
+    if (command == "DECR") return Command::Decr;
+    if (command == "DECRBY") return Command::DecrBy;
+    if (command == "APPEND") return Command::Append;
+    if (command == "QUIT" || command == "EXIT") return Command::Quit;
+
+    return Command::Unknown;
+}
+
     std::string to_upper(std::string text) {
     std::transform(text.begin(), text.end(), text.begin(), [](unsigned char character) {
             return std::toupper(character);

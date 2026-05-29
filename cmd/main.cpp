@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "store.hpp"
 #include "parser.hpp"
@@ -9,133 +10,163 @@
 
 int main() {
     KVStore kv_store;
-
     std::string command_line;
 
     while (true) {
         std::cout << "> ";
 
-        // Stop the CLI if input is closed, for example with Ctrl+D.
         if (!std::getline(std::cin, command_line)) {
             break;
         }
 
         std::istringstream input_stream(command_line);
 
-        std::string command;
-        if (!(input_stream >> command)) {
-            continue; // Ignore empty lines.
+        std::string command_text;
+        if (!(input_stream >> command_text)) {
+            continue;
         }
 
-        command = cli::to_upper(command);
+        Command command = cli::parse_command_type(command_text);
 
-        if (command == "SET") {
-            std::string key;
-            std::string value;
+        switch (command) {
+            case Command::Set: {
+                std::string key;
+                std::string value;
 
-            if (!cli::parse_set(input_stream, key, value)) {
-                continue;
+                if (!cli::parse_set(input_stream, key, value)) {
+                    continue;
+                }
+
+                kv_store.set(key, value);
+                std::cout << "OK\n";
+                break;
             }
 
-            kv_store.set(key, value);
-            std::cout << "OK\n";
+            case Command::Get: {
+                std::string key;
 
-        } else if (command == "GET") {
-            std::string key;
+                if (!cli::parse_get(input_stream, key)) {
+                    continue;
+                }
 
-            if (!cli::parse_get(input_stream, key)) {
-                continue;
+                auto result = kv_store.get(key);
+
+                if (result) {
+                    std::cout << *result << '\n';
+                } else {
+                    std::cout << "nil\n";
+                }
+
+                break;
             }
 
-            auto result = kv_store.get(key);
+            case Command::Del: {
+                std::vector<std::string> keys;
 
-            if (result) {
-                std::cout << *result << '\n';
-            } else {
-                std::cout << "nil\n";
+                if (!cli::parse_del(input_stream, keys)) {
+                    continue;
+                }
+
+                std::size_t removed_count = kv_store.remove(keys);
+                std::cout << removed_count << '\n';
+                break;
             }
 
-        } else if (command == "DEL") {
-            std::vector<std::string>keys;
+            case Command::IncrBy: {
+                std::string key;
+                int amount = 0;
 
-            if(!cli::parse_del(input_stream, keys)){
-                continue;
+                if (!cli::parse_incrby(input_stream, key, amount)) {
+                    continue;
+                }
+
+                auto result = kv_store.increase_by(key, amount);
+
+                if (result) {
+                    std::cout << *result << '\n';
+                } else {
+                    std::cerr << "Error: value is not an integer or out of range\n";
+                }
+
+                break;
             }
 
-            std::size_t removed_count = kv_store.remove(keys);
-            std::cout << removed_count << '\n';
+            case Command::Incr: {
+                std::string key;
 
-        } else if (command == "INCRBY"){
-            std::string key;
-            int amount =0;
-            if (!cli::parse_incrby(input_stream, key, amount)) continue;
+                if (!cli::parse_incr(input_stream, key)) {
+                    continue;
+                }
 
-            auto result = kv_store.increase_by(key,  amount);
-            
-            if (result){
-                std::cout << *result << '\n';
-            }else{
-                std::cout << "Error: value is not an integer or out of range\n";
+                auto result = kv_store.increase_by(key, 1);
+
+                if (result) {
+                    std::cout << *result << '\n';
+                } else {
+                    std::cerr << "Error: value is not an integer or out of range\n";
+                }
+
+                break;
             }
 
-        }else if (command == "INCR"){
-            std::string key;
+            case Command::Decr: {
+                std::string key;
 
-            if (!cli::parse_incr(input_stream, key)){
-                continue;
+                if (!cli::parse_decr(input_stream, key)) {
+                    continue;
+                }
+
+                auto result = kv_store.increase_by(key, -1);
+
+                if (result) {
+                    std::cout << *result << '\n';
+                } else {
+                    std::cerr << "Error: value is not an integer or out of range\n";
+                }
+
+                break;
             }
 
-            auto result = kv_store.increase_by(key, 1);
+            case Command::DecrBy: {
+                std::string key;
+                int amount = 0;
 
-            if (result){
-                std::cout << *result << '\n';
-            }else {
-                std::cerr << "Error: value is not an integer or out of range \n";
+                if (!cli::parse_decrby(input_stream, key, amount)) {
+                    continue;
+                }
+
+                auto result = kv_store.increase_by(key, -amount);
+
+                if (result) {
+                    std::cout << *result << '\n';
+                } else {
+                    std::cerr << "Error: value is not an integer or out of range\n";
+                }
+
+                break;
             }
 
-        }else if (command == "DECR") {
-            std::string key;
+            case Command::Append: {
+                std::string key;
+                std::string value;
 
-            if (!cli::parse_decr(input_stream, key)) {
-                continue;
+                if (!cli::parse_append(input_stream, key, value)) {
+                    continue;
+                }
+
+                std::string result = kv_store.append(key, value);
+                std::cout << result << '\n';
+
+                break;
             }
 
-            auto result = kv_store.increase_by(key, -1);
+            case Command::Quit:
+                std::cout << "Exiting...\n";
+                return 0;
 
-            if (result) {
-                std::cout << *result << '\n';
-            } else {
-                std::cerr << "Error: value is not an integer or out of range\n";
-            }
-
-        }else if (command == "DECRBY") {
-            std::string key;
-            int amount = 0;
-
-            if (!cli::parse_decrby(input_stream, key, amount)) {
-                continue;
-            }
-
-            auto result = kv_store.increase_by(key, -amount);
-
-            if (result) {
-                std::cout << *result << '\n';
-            } else {
-                std::cerr << "Error: value is not an integer or out of range\n";
-            }
-        }else if(command == "APPEND"){
-            std::string key;
-            std::string value;
-
-            if (!cli::parse_append(input_stream, key, value)){
-                continue;
-            }
-            std::string result = kv_store.append(key, value);
-        }else if (command == "QUIT" || command == "EXIT") {
-            break;
-
-        } else {
-            std::cerr << "Error: unknown command '" << command << "'\n";
+            case Command::Unknown:
+                std::cerr << "Error: unknown command '" << command_text << "'\n";
+                break;
         }
     }
 
