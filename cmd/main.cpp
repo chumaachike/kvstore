@@ -27,14 +27,14 @@ int main() {
             continue;
         }
 
-        Command command = cli::parse_command_type(command_text);
+        auto command = cli::parse_command_type(command_text);
 
         switch (command) {
-            case Command::Set: {
+            case cli::Command::Set: {
                 std::string key;
                 std::string value;
                 
-                auto err = cli::parse_set(input_stream, key, value);
+                auto err = cli::parse_value(input_stream, key, value);
                 if (err != cli::ParseError::None) {
                     std::cerr << cli::error_message(err) << '\n';
                     continue;
@@ -45,7 +45,7 @@ int main() {
                 break;
             }
 
-            case Command::Get: {
+            case cli::Command::Get: {
                 std::string key;
 
                 auto err = cli::parse_get(input_stream, key);
@@ -65,7 +65,7 @@ int main() {
                 break;
             }
 
-            case Command::Del: {
+            case cli::Command::Del: {
                 std::vector<std::string> keys;
                 
                 auto err = cli::parse_del(input_stream, keys);
@@ -79,7 +79,7 @@ int main() {
                 break;
             }
 
-            case Command::IncrBy: {
+            case cli::Command::IncrBy: {
                 std::string key;
                 int amount = 0;
 
@@ -100,7 +100,7 @@ int main() {
                 break;
             }
 
-            case Command::Incr: {
+            case cli::Command::Incr: {
                 std::string key;
 
                 auto err = cli::parse_incr(input_stream, key);
@@ -120,7 +120,7 @@ int main() {
                 break;
             }
 
-            case Command::Decr: {
+            case cli::Command::Decr: {
                 std::string key;
 
                 auto err = cli::parse_decr(input_stream, key);
@@ -140,7 +140,7 @@ int main() {
                 break;
             }
 
-            case Command::DecrBy: {
+            case cli::Command::DecrBy: {
                 std::string key;
                 int amount = 0;
 
@@ -161,11 +161,11 @@ int main() {
                 break;
             }
 
-            case Command::Append: {
+            case cli::Command::Append: {
                 std::string key;
                 std::string value;
 
-                auto err = cli::parse_append(input_stream, key, value);
+                auto err = cli::parse_value(input_stream, key, value);
                 if (err != cli::ParseError::None) {
                     std::cerr << cli::error_message(err) << '\n';
                     continue;
@@ -177,11 +177,11 @@ int main() {
                 break;
             }
 
-            case Command::Quit:
+            case cli::Command::Quit:
                 std::cout << "Exiting...\n";
                 return 0;
 
-            case Command::Unknown:
+            case cli::Command::Unknown:
                 std::cerr << "Error: unknown command '" << command_text << "'\n";
                 break;
         }

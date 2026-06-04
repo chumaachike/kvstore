@@ -49,11 +49,13 @@ FetchContent_MakeAvailable(googletest)
 # Test Executable
 add_executable(kvstore_test
     tests/store_test.cpp
+    tests/parser_test.cpp
 )
 
 target_link_libraries(kvstore_test
     PRIVATE
         store
+        cli
         GTest::gtest_main
 )
 

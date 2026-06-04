@@ -59,7 +59,7 @@ namespace cli {
         return !iss.eof();
     }
     
-    ParseError parse_set(std::istringstream &iss, std::string &key, std::string &value) {
+    ParseError parse_value(std::istringstream &iss, std::string &key, std::string &value) {
 
         // SET requires at least:
         // SET <key> <value>
@@ -142,6 +142,10 @@ namespace cli {
         return ParseError::MissingKey;
     }
 
+    if (iss.eof()) {
+        return ParseError::MissingValue;
+    }
+
     if (!(iss >> amount)) {
         return ParseError::InvalidInteger;
     }
@@ -189,60 +193,15 @@ ParseError parse_decrby(std::istringstream& iss, std::string& key, int& amount) 
         return ParseError::MissingKey;
     }
 
+    if (iss.eof()) {
+        return ParseError::MissingValue;
+    }
+
     if (!(iss >> amount)) {
         return ParseError::InvalidInteger;
     }
 
     if (extra_token(iss)){
-        return ParseError::ExtraTokens;
-    }
-
-    return ParseError::None;
-}
-
-ParseError parse_append(std::istringstream& iss,
-                        std::string& key,
-                        std::string& value) {
-    // APPEND requires:
-    // APPEND <key> <value>
-    if (!(iss >> key)) {
-        return ParseError::MissingKey;
-    }
-
-    iss >> std::ws;
-
-    // Quoted values allow spaces:
-    // APPEND name " Achike"
-    if (iss.peek() == '"') {
-        iss.get(); // consume opening quote
-
-        std::string remaining_input;
-        std::getline(iss, remaining_input);
-
-        std::size_t closing_quote_pos = remaining_input.find('"');
-
-        if (closing_quote_pos == std::string::npos) {
-            return ParseError::UnterminatedQuote;
-        }
-
-        value = remaining_input.substr(0, closing_quote_pos);
-
-        std::string trailing = remaining_input.substr(closing_quote_pos + 1);
-        std::istringstream trailing_stream(trailing);
-
-        if (extra_token(trailing_stream)) {
-            return ParseError::ExtraTokens;
-        }
-
-        return ParseError::None;
-    }
-
-    // Non-quoted values cannot contain spaces
-    if (!(iss >> value)) {
-        return ParseError::MissingValue;
-    }
-
-    if (extra_token(iss)) {
         return ParseError::ExtraTokens;
     }
 
