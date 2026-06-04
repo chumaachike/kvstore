@@ -116,7 +116,6 @@ namespace cli {
         }
 
         if (extra_token(iss)){
-            std::cerr << "Error: syntax error\n";
             return ParseError::ExtraTokens;
         }
         return ParseError::None;
