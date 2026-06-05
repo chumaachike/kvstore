@@ -13,7 +13,7 @@ TEST(ParserTest, ParseCommandTypeReturnsUnknownForInvalidCommand) {
     EXPECT_EQ(cli::parse_command_type("BOGUS"), cli::Command::Unknown);
 }
 
-TEST(ParserTest, ParseSetParsesKeyAndValue) {
+TEST(ParserTest, ParseValueParsesKeyAndValue) {
     std::istringstream iss("name Edward");
     std::string key;
     std::string value;
@@ -25,7 +25,7 @@ TEST(ParserTest, ParseSetParsesKeyAndValue) {
     EXPECT_EQ(value, "Edward");
 }
 
-TEST(ParserTest, ParseSetSupportsQuotedValues) {
+TEST(ParserTest, ParseValueSupportsQuotedValues) {
     std::istringstream iss("name \"Edward Achike\"");
     std::string key;
     std::string value;
@@ -37,7 +37,7 @@ TEST(ParserTest, ParseSetSupportsQuotedValues) {
     EXPECT_EQ(value, "Edward Achike");
 }
 
-TEST(ParserTest, ParseGetRejectsExtraTokens) {
+TEST(ParserTest, ParseValueRejectsExtraTokens) {
     std::istringstream iss("name extra");
     std::string key;
 
@@ -54,4 +54,55 @@ TEST(ParserTest, ParseDelAcceptsMultipleKeys) {
 
     EXPECT_EQ(error, cli::ParseError::None);
     EXPECT_EQ(keys, std::vector<std::string>({"name", "age", "language"}));
+}
+
+TEST(ParserTest, ParseValueRejectsUnterminatedQuote){
+    std::istringstream iss ("name \"start quote without end");
+    std::string key, value;
+    auto error = cli::parse_value(iss, key, value);
+
+    EXPECT_EQ(error, cli::ParseError::UnterminatedQuote);
+}
+
+TEST(ParserTest, ParseIncrByParsesAmount) {
+    std::istringstream iss("counter 5");
+
+    std::string key;
+    int amount;
+
+    auto error = cli::parse_incrby(iss, key, amount);
+
+    EXPECT_EQ(error, cli::ParseError::None);
+    EXPECT_EQ(key, "counter");
+    EXPECT_EQ(amount, 5);
+}
+
+TEST(ParserTest, ParseIncrByRejectsMissingAmount) {
+    std::istringstream iss("counter   ");
+    std::string key;
+    int amount = 0;
+
+    auto error = cli::parse_incrby(iss, key, amount);
+
+    EXPECT_EQ(error, cli::ParseError::MissingValue);
+}
+
+TEST(ParserTest, ParseIncrByRejectsInvalidAmount) {
+    std::istringstream iss("counter five");
+    std::string key;
+    int amount = 0;
+
+    auto error = cli::parse_incrby(iss, key, amount);
+
+    EXPECT_EQ(error, cli::ParseError::InvalidInteger);
+}
+
+TEST(ParserTest, ParseIncrByRejectsExtraTokens) {
+    std::istringstream iss("counter 5 extra");
+    std::string key;
+    int amount = 0;
+
+    auto error = cli::parse_incrby(iss, key, amount);
+
+    EXPECT_EQ(error, cli::ParseError::ExtraTokens);
 }

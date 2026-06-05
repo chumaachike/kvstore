@@ -46,13 +46,12 @@ namespace cli {
 }
 
     std::string to_upper(std::string text) {
-    std::transform(text.begin(), text.end(), text.begin(), [](unsigned char character) {
-            return std::toupper(character);
-        }
-    );
+        std::transform(text.begin(), text.end(), text.begin(), [](unsigned char character) {
+            return static_cast<char>(std::toupper(character));
+        });
 
-    return text;
-}
+        return text;
+    }
 
     bool extra_token(std::istringstream& iss) {
         iss >> std::ws;
@@ -142,6 +141,7 @@ namespace cli {
         return ParseError::MissingKey;
     }
 
+    iss >> std::ws;
     if (iss.eof()) {
         return ParseError::MissingValue;
     }
@@ -192,7 +192,8 @@ ParseError parse_decrby(std::istringstream& iss, std::string& key, int& amount) 
     if (!(iss >> key)) {
         return ParseError::MissingKey;
     }
-
+    
+    iss >> std::ws;
     if (iss.eof()) {
         return ParseError::MissingValue;
     }
