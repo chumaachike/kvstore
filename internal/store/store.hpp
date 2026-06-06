@@ -1,4 +1,7 @@
 #pragma once
+
+#include <mutex>
+#include <shared_mutex>
 #include <unordered_map>
 #include <string>
 #include <optional>
@@ -15,5 +18,6 @@ class KVStore {
     std::string append(const std::string& key, const std::string& value);
     private:
     std::unordered_map<std::string, std::string>store;
+    mutable std::shared_mutex mutex;
 
 };

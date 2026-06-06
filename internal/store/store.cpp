@@ -1,13 +1,12 @@
 #include "store.hpp"
 
-void KVStore::set(const std::string& key,
-                  const std::string& value) {
-
+void KVStore::set(const std::string& key, const std::string& value) {
+    std::lock_guard  lock(mutex);
     store.insert_or_assign(key, value);
 }
 
-std::optional<std::string>
-KVStore::get(const std::string& key) const {
+std::optional<std::string> KVStore::get(const std::string& key) const {
+    std::shared_lock lock(mutex);
 
     if (auto it = store.find(key);
         it != store.end()) {
@@ -18,8 +17,8 @@ KVStore::get(const std::string& key) const {
     return std::nullopt;
 }
 
-std::size_t
-KVStore::remove(const std::vector<std::string>& keys) {
+std::size_t KVStore::remove(const std::vector<std::string>& keys) {
+    std::lock_guard lock(mutex);
 
     std::size_t removed = 0;
 
@@ -31,10 +30,12 @@ KVStore::remove(const std::vector<std::string>& keys) {
 }
 
 bool KVStore::exists(const std::string& key) const {
+    std::shared_lock lock(mutex);
     return store.find(key) != store.end();
 }
 
 std::optional<int> KVStore::increase_by(const std::string& key, int amount) {
+    std::lock_guard lock (mutex);
     auto it = store.find(key);
 
     if (it == store.end()) {
@@ -60,6 +61,7 @@ std::optional<int> KVStore::increase_by(const std::string& key, int amount) {
 }
 
 std::string KVStore::append(const std::string& key, const std::string& value) {
+    std::lock_guard lock (mutex);
     auto it = store.find(key);
 
     if (it == store.end()) {

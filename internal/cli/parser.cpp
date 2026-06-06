@@ -165,6 +165,7 @@ namespace cli {
         return ParseError::MissingKey;
     }
 
+    iss >> std::ws;
     if (extra_token(iss)){
        return ParseError::ExtraTokens;
     }
@@ -179,6 +180,7 @@ ParseError parse_decr(std::istringstream &iss, std::string &key){
         return ParseError::MissingKey;
     }
 
+    iss >> std::ws;
     if (extra_token(iss)){
        return ParseError::ExtraTokens;
     }
