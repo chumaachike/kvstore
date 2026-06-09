@@ -67,3 +67,8 @@ conaninfo.txt
 tmp/
 temp/
 .cache/
+
+
+
+hhh.txt
+build-tsan/

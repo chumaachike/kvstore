@@ -50,6 +50,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(kvstore_test
     tests/store_test.cpp
     tests/parser_test.cpp
+    tests/cuncurrency_test.cpp
 )
 
 target_link_libraries(kvstore_test
