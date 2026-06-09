@@ -5,20 +5,22 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(store
-    internal/store/store.cpp
+    src/store.cpp
 )
 
-target_include_directories(store PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/internal/store
+add_library(parser
+    src/parser.cpp
 )
 
-add_library(cli
-    internal/cli/parser.cpp
+add_library(headers INTERFACE)
+
+target_include_directories(headers
+    INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_include_directories(cli PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/internal/cli
-)
+target_link_libraries(store PUBLIC headers)
+target_link_libraries(parser PUBLIC headers)
 
 add_executable(kvstore
     cmd/main.cpp
@@ -26,7 +28,7 @@ add_executable(kvstore
 
 target_link_libraries(kvstore PRIVATE
     store
-    cli
+    parser
 )
 
 # Enable testing
@@ -56,7 +58,7 @@ add_executable(kvstore_test
 target_link_libraries(kvstore_test
     PRIVATE
         store
-        cli
+        parser
         GTest::gtest_main
 )
 
