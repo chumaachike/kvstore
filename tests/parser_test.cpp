@@ -13,24 +13,24 @@ TEST(ParserTest, ParseCommandTypeReturnsUnknownForInvalidCommand) {
     EXPECT_EQ(cli::parse_command_type("BOGUS"), cli::Command::Unknown);
 }
 
-TEST(ParserTest, ParseValueParsesKeyAndValue) {
+TEST(ParserTest, ParseSetParsesKeyAndValue) {
     std::istringstream iss("name Edward");
     std::string key;
     std::string value;
 
-    auto error = cli::parse_value(iss, key, value);
+    auto error = cli::parse_set(iss, key, value);
 
     EXPECT_EQ(error, cli::ParseError::None);
     EXPECT_EQ(key, "name");
     EXPECT_EQ(value, "Edward");
 }
 
-TEST(ParserTest, ParseValueSupportsQuotedValues) {
+TEST(ParserTest, ParseSetSupportsQuotedValues) {
     std::istringstream iss("name \"Edward Achike\"");
     std::string key;
     std::string value;
 
-    auto error = cli::parse_value(iss, key, value);
+    auto error = cli::parse_set(iss, key, value);
 
     EXPECT_EQ(error, cli::ParseError::None);
     EXPECT_EQ(key, "name");
@@ -59,7 +59,7 @@ TEST(ParserTest, ParseDelAcceptsMultipleKeys) {
 TEST(ParserTest, ParseValueRejectsUnterminatedQuote){
     std::istringstream iss ("name \"start quote without end");
     std::string key, value;
-    auto error = cli::parse_value(iss, key, value);
+    auto error = cli::parse_set(iss, key, value);
 
     EXPECT_EQ(error, cli::ParseError::UnterminatedQuote);
 }

@@ -33,7 +33,7 @@ int main() {
                 std::string key;
                 std::string value;
                 
-                auto err = cli::parse_value(input_stream, key, value);
+                auto err = cli::parse_set(input_stream, key, value);
                 if (err != cli::ParseError::None) {
                     std::cerr << cli::error_message(err) << '\n';
                     continue;
@@ -164,7 +164,7 @@ int main() {
                 std::string key;
                 std::string value;
 
-                auto err = cli::parse_value(input_stream, key, value);
+                auto err = cli::parse_append(input_stream, key, value);
                 if (err != cli::ParseError::None) {
                     std::cerr << cli::error_message(err) << '\n';
                     continue;

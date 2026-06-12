@@ -23,7 +23,7 @@ target_link_libraries(store PUBLIC headers)
 target_link_libraries(parser PUBLIC headers)
 
 add_executable(kvstore
-    cmd/main.cpp
+    src/main.cpp
 )
 
 target_link_libraries(kvstore PRIVATE
