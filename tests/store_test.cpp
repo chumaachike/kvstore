@@ -54,18 +54,18 @@ TEST(KVStoreTest, SetOverwritesExistingValue) {
     EXPECT_EQ(store.get("name").value(), "edward");
 }
 
-TEST_F(KVStoreFixture, RemoveReturnsNumberOfRemovedKeys) {
-    auto result = store.remove({ "language", "framework"});
+TEST_F(KVStoreFixture, EraseReturnsNumberOfRemovedKeys) {
+    auto result = store.erase({ "language", "framework"});
     EXPECT_EQ(result, 2);
 }
 
-TEST_F(KVStoreFixture, RemoveIgnoresMissingKeys) {
-    auto result = store.remove({"name", "language", "framework", "age"});
+TEST_F(KVStoreFixture, EraseIgnoresMissingKeys) {
+    auto result = store.erase({"name", "language", "framework", "age"});
     EXPECT_EQ(result, 3);
 }
 
-TEST_F(KVStoreFixture, RemoveDeletesMultipleKeys){
-    auto result = store.remove({"name", "language", "framework"});
+TEST_F(KVStoreFixture, EraseDeletesMultipleKeys){
+    auto result = store.erase({"name", "language", "framework"});
 
     EXPECT_FALSE(store.get("name").has_value());
     EXPECT_FALSE(store.get("language").has_value());

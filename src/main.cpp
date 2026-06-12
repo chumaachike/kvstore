@@ -73,7 +73,7 @@ int main() {
                     continue;
                 }
 
-                std::size_t removed_count = kv_store.remove(keys);
+                std::size_t removed_count = kv_store.erase(keys);
                 std::cout << removed_count << '\n';
                 break;
             }

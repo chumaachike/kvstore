@@ -1,4 +1,5 @@
 #include "store.hpp"
+#include <stdexcept>
 
 void KVStore::set(const std::string& key, const std::string& value) {
     std::lock_guard  lock(mutex);
@@ -17,7 +18,7 @@ std::optional<std::string> KVStore::get(const std::string& key) const {
     return std::nullopt;
 }
 
-std::size_t KVStore::remove(const std::vector<std::string>& keys) {
+std::size_t KVStore::erase(const std::vector<std::string>& keys) {
     std::lock_guard lock(mutex);
 
     std::size_t removed = 0;
@@ -55,7 +56,9 @@ std::optional<int> KVStore::increase_by(const std::string& key, int amount) {
 
         it->second = std::to_string(new_value);
         return new_value;
-    } catch (const std::exception&) {
+    } catch (const std::invalid_argument&) {
+        return std::nullopt;
+    } catch (const std::out_of_range&){
         return std::nullopt;
     } 
 }

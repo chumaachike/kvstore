@@ -134,7 +134,7 @@ TEST(KVStoreConcurrencyTest, ReadersCanDeleteMultipleWhileGet) {
             while (!start.load(std::memory_order_acquire)) {}
 
             for (int i = 0; i < N; ++i) {
-                store.remove({std::to_string(i)});
+                store.erase({std::to_string(i)});
             }
         });
     }
