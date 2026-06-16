@@ -12,6 +12,10 @@ add_library(parser
     src/parser.cpp
 )
 
+add_library(server
+    src/server.cpp
+)
+
 add_library(headers INTERFACE)
 
 target_include_directories(headers
@@ -21,6 +25,7 @@ target_include_directories(headers
 
 target_link_libraries(store PUBLIC headers)
 target_link_libraries(parser PUBLIC headers)
+target_link_libraries(server PUBLIC headers)
 
 add_executable(kvstore
     src/main.cpp
@@ -29,6 +34,7 @@ add_executable(kvstore
 target_link_libraries(kvstore PRIVATE
     store
     parser
+    server
 )
 
 # Enable testing

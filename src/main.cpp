@@ -6,6 +6,7 @@
 
 #include "store.hpp"
 #include "parser.hpp"
+#include "server.hpp"
 
 namespace  {
 
@@ -68,18 +69,20 @@ void handle_delete (KVStore& store, std::istringstream& input_stream){
     std::cout << removed_count << '\n';
 }
 
-void handle_incrby(KVStore& store, std::istringstream& input_stream){
+std::string handle_incrby(KVStore& store, std::istringstream& input_stream){
     std::string key;
     int amount = 0;
 
     auto err = cli::parse_incrby(input_stream, key, amount);
-    if (handle_parse_error(err)){
-        return;
+    if (err!= cli::ParseError::None){
+        return cli::error_message(err);
     }
 
     auto result = store.increase_by(key, amount);
-    print_integer_result(result);
-
+    if  (!result){
+        return "Error: value is not an integer or out of range";
+    }
+    return std::to_string(*result);
 }
 
 void handle_incr(KVStore& store, std::istringstream& input_stream){
@@ -141,16 +144,29 @@ void handle_append(KVStore& store, std::istringstream& input_stream){
 
 int main() {
     KVStore kv_store;
-    std::string command_line;
+    //std::string command_line;
 
+    TCPServer tcp_server;
+    auto client_fd = -1;
+    try{
+        client_fd = tcp_server.start(8080);
+    }catch(const std::exception& e){
+        std::cerr<<"Error: " <<e.what()<<'\n';
+
+    }
+    
     while (true) {
         std::cout << "> ";
 
-        if (!std::getline(std::cin, command_line)) {
+        auto command_line = tcp_server.recv_line(client_fd);
+
+        if(!command_line) {
+            std::cout << "Client disconnected\n";
+            tcp_server.stop(client_fd);
             break;
         }
 
-        std::istringstream input_stream(command_line);
+        std::istringstream input_stream(*command_line);
 
         std::string command_text;
         if (!(input_stream >> command_text)) {
@@ -193,6 +209,7 @@ int main() {
                 break;
 
             case cli::Command::Quit:
+
                 std::cout << "Exiting...\n";
                 return 0;
 
@@ -203,5 +220,7 @@ int main() {
     }
 
     std::cout << "Exiting...\n";
+
+    
     return 0;
 }
