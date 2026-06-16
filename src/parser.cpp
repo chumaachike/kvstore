@@ -10,22 +10,22 @@ namespace cli {
     std::string error_message(ParseError error) {
         switch (error) {
             case ParseError::MissingKey:
-                return "Error: missing key";
+                return "Error: missing key\n";
 
             case ParseError::MissingValue:
-                return "Error: missing value";
+                return "Error: missing value\n";
 
             case ParseError::InvalidInteger:
-                return "Error: invalid integer";
+                return "Error: invalid integer\n";
 
             case ParseError::ExtraTokens:
-                return "Error: syntax error";
+                return "Error: syntax error\n";
 
             case ParseError::UnterminatedQuote:
-                return "Error: unterminated quote";
+                return "Error: unterminated quote\n";
 
             default:
-                return "";
+                throw std::logic_error("Unhandled ParseError");
             }
     }
     namespace  {

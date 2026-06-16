@@ -3,7 +3,6 @@
 #include <string>
 #include <stdexcept>
 #include <unistd.h>
-#include <iostream>
 #include <cerrno>
 #include <sys/socket.h>
 
@@ -18,7 +17,11 @@ bool TCPServer::send_all(int fd, const char* data, size_t len){
     while (total < len){
         ssize_t sent = send(fd, data + total, len-total, 0);
 
-        if (sent <= 0 ){
+        if (sent < 0 ){
+            if (errno == EINTR) continue;
+            return false;
+        }
+        if (sent == 0){
             return false;
         }
         total += sent;
@@ -98,8 +101,6 @@ int TCPServer::start(uint16_t port){
         close(server_fd_);
         throw std::runtime_error(std::string("listen: ") + std::strerror(errno));
     }
-
-    std::cout << "Server listening on port "<< port << " ...\n";
     
     sockaddr_storage client_addr{};
     socklen_t client_len = sizeof(client_addr);
@@ -109,21 +110,5 @@ int TCPServer::start(uint16_t port){
     if (client_fd == -1){
         throw std::runtime_error(std::string("accept: ") + std::strerror(errno));        
     }
-
-    std::cout << "Client connected \n";
     return client_fd;    
 }
-
-
-// std::optional<std::string> TCPServer::handle_client(int client_fd) {
-//     while (true) {
-//         auto line = recv_line(client_fd);
-
-//         if (!line) {
-//             return std::nullopt;
-//         }
-
-//        return line;
-//     }
-    
-// }
