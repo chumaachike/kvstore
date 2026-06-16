@@ -8,39 +8,57 @@ add_library(store
     src/store.cpp
 )
 
+target_include_directories(store
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
 add_library(parser
     src/parser.cpp
+)
+
+target_include_directories(parser
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 add_library(server
     src/server.cpp
 )
 
-add_library(headers INTERFACE)
-
-target_include_directories(headers
-    INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+target_include_directories(server
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(store PUBLIC headers)
-target_link_libraries(parser PUBLIC headers)
-target_link_libraries(server PUBLIC headers)
+add_library(command_executor
+    src/command_executor.cpp
+)
+
+target_include_directories(command_executor
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_link_libraries(command_executor
+    PUBLIC
+        store
+        parser
+)
 
 add_executable(kvstore
     src/main.cpp
 )
 
-target_link_libraries(kvstore PRIVATE
-    store
-    parser
-    server
+target_link_libraries(kvstore
+    PRIVATE
+        store
+        parser
+        server
+        command_executor
 )
 
-# Enable testing
 include(CTest)
-
-# Download GoogleTest
 include(FetchContent)
 
 FetchContent_Declare(
@@ -49,22 +67,21 @@ FetchContent_Declare(
     GIT_TAG 7140cd416cecd7462a8aae488024abeee55598e4
 )
 
-# Avoid runtime library mismatch issues
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(googletest)
 
-# Test Executable
 add_executable(kvstore_test
     tests/store_test.cpp
     tests/parser_test.cpp
-    tests/cuncurrency_test.cpp
+    tests/concurrency_test.cpp
 )
 
 target_link_libraries(kvstore_test
     PRIVATE
         store
         parser
+        command_executor
         GTest::gtest_main
 )
 

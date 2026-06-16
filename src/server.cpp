@@ -1,10 +1,9 @@
 #include <cstring>
 #include <netdb.h>
-#include <string>
-#include <stdexcept>
 #include <unistd.h>
 #include <cerrno>
 #include <sys/socket.h>
+#include <stdexcept>
 
 #include "server.hpp"
 
@@ -61,7 +60,7 @@ std::optional<std::string> TCPServer::recv_line(int fd) {
     }
 }
 
-int TCPServer::start(uint16_t port){
+void TCPServer::start(uint16_t port){
     addrinfo hints{};
     addrinfo* res{};
 
@@ -100,8 +99,10 @@ int TCPServer::start(uint16_t port){
     if (listen(server_fd_, SOMAXCONN) == -1){
         close(server_fd_);
         throw std::runtime_error(std::string("listen: ") + std::strerror(errno));
-    }
-    
+    }   
+}
+
+int TCPServer::accept_client(){
     sockaddr_storage client_addr{};
     socklen_t client_len = sizeof(client_addr);
 
@@ -110,5 +111,5 @@ int TCPServer::start(uint16_t port){
     if (client_fd == -1){
         throw std::runtime_error(std::string("accept: ") + std::strerror(errno));        
     }
-    return client_fd;    
+    return client_fd; 
 }
