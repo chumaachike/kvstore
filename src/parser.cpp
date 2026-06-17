@@ -90,39 +90,42 @@ std::string Parser::to_upper(std::string text) {
 ParseResult<Command, ParseError> Parser::parse_key_value(const CommandType& command, const std::vector<std::string>& remaining_tokens){
     if (remaining_tokens.size() < 2) return std::unexpected(ParseError::InvalidArguments);
 
-        std::string key = remaining_tokens[0];
-        std::string value;
+    std::string key = remaining_tokens[0];
+    std::string value;
 
-        //Quoted value: SET Key "hello world"
-        if (remaining_tokens[1] == "\""){
-            if (remaining_tokens.size() < 3)
-                return std::unexpected(ParseError::UnterminatedQuote);
-            bool closed = false;
+    //Quoted value: SET Key "hello world"
+    if (!remaining_tokens[1].empty() && remaining_tokens[1].front() == '"'){
+        bool closed = false;
 
-            for (size_t i = 2; i < remaining_tokens.size(); ++i){
-                if (remaining_tokens[i] == "\""){
-                    closed = true;
-                    break;
-                }
-                if (!value.empty()){
-                    value += " ";
-                }
-                value += remaining_tokens[i];
+        for (size_t i = 1; i < remaining_tokens.size(); ++i){
+            if (i > 1)
+                value += ' ';
 
+            value += remaining_tokens[i];
+
+            if (!remaining_tokens[i].empty() && remaining_tokens[i].back() == '"'){
+                closed = true;
+                break;
             }
-            if (!closed) return std::unexpected(ParseError::UnterminatedQuote);
-        }else{
-            if (remaining_tokens.size() > 2) return std::unexpected(ParseError::InvalidArguments);
-            value = remaining_tokens[1];
         }
-        return Command{command, {key, value}};
+
+        if (!closed)
+            return std::unexpected(ParseError::UnterminatedQuote);
+
+        value.erase(0, 1);      // remove opening quote
+        value.pop_back();       // remove closing quote
+    }else{
+        if (remaining_tokens.size() > 2) return std::unexpected(ParseError::InvalidArguments);
+        value = remaining_tokens[1];
+    }
+    return Command{command, {key, value}};
 }
 
 ParseResult<Command, ParseError>Parser::parse_single_key(const CommandType& command, const std::vector<std::string>& remaining_tokens){
      if (remaining_tokens.size() != 1) return std::unexpected(ParseError::InvalidArguments);
-        return Command{command, {remaining_tokens[1]}};
+        return Command{command, {remaining_tokens[0]}};
 }
 ParseResult<Command, ParseError>Parser::parse_key_and_int(const CommandType& command, const std::vector<std::string>& remaining_tokens){
     if (remaining_tokens.size() != 2) return std::unexpected(ParseError::InvalidArguments);
-    return Command(command, remaining_tokens);
+    return Command{command, remaining_tokens};
 }

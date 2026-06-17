@@ -14,7 +14,12 @@ struct CommandResult {
     std::string response;
 };
 
-CommandResult execute_command(
-    KVStore& store,
-    const std::string& command_line
-);
+class CommandExecutor {
+public:
+    explicit CommandExecutor(KVStore& store);
+
+    std::string execute(const std::string& input);
+
+private:
+    KVStore& store;
+};
