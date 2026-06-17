@@ -1,179 +1,128 @@
-#include <algorithm>
-#include <iostream>
-#include <sstream>
-#include <cctype>
-
 #include "parser.hpp"
 
-namespace cli {
+#include <sstream>
+#include <algorithm>
+#include <cctype>
 
-    std::string error_message(ParseError error) {
-        switch (error) {
-            case ParseError::MissingKey:
-                return "Error: missing key\n";
+ParseResult<Command, ParseError> Parser::parse(const std::string& input) {
+    auto tokens = tokenize(input);
 
-            case ParseError::MissingValue:
-                return "Error: missing value\n";
-
-            case ParseError::InvalidInteger:
-                return "Error: invalid integer\n";
-
-            case ParseError::ExtraTokens:
-                return "Error: syntax error\n";
-
-            case ParseError::UnterminatedQuote:
-                return "Error: unterminated quote\n";
-
-            default:
-                throw std::logic_error("Unhandled ParseError");
-            }
-    }
-    namespace  {
-        std::string to_upper(std::string text) {
-            std::transform(text.begin(), text.end(), text.begin(), [](unsigned char character) {
-                return static_cast<char>(std::toupper(character));
-            });
-
-            return text;
-        }
-
-        bool extra_token(std::istringstream& iss) {
-            iss >> std::ws;
-            return !iss.eof();
-        }
-    
-        ParseError parse_key_and_value(std::istringstream &iss, std::string &key, std::string &value) {
-            if (!(iss >> key)){
-                return ParseError::MissingKey;
-            }
-
-            iss >> std::ws;
-
-            // Quoted values may contain spaces:
-            // SET name "Bob Smith"
-            if (iss.peek() == '"'){
-                iss.get();
-
-                std::string remaining_input;
-                std::getline(iss, remaining_input);
-
-                std::size_t closing_quote_pos = remaining_input.find('"');
-
-                if (closing_quote_pos == std::string::npos){
-                    return ParseError::UnterminatedQuote;
-                }
-                value = remaining_input.substr(0, closing_quote_pos);
-                
-                std::string trailing = remaining_input.substr(closing_quote_pos +1);
-                std::istringstream trailing_stream(trailing);
-
-                // Reject additional tokens after a quoted value.
-                if (extra_token(trailing_stream)) {
-                    return ParseError::ExtraTokens;
-                }
-
-                return ParseError::None;
-            }
-
-            if (!(iss >> value)){
-                return ParseError::MissingValue;
-            }
-
-            if (extra_token(iss)){
-                return ParseError::ExtraTokens;
-            }
-
-            return ParseError::None;
+    if (tokens.empty()) {
+        return std::unexpected(ParseError::EmptyInput);
     }
 
-    ParseError parse_single_key(std::istringstream& iss, std::string& key){
-        if (!(iss >> key)) {
-            return ParseError::MissingKey;
+    std::string command = to_upper(tokens[0]);
+
+    if (command == "SET") {
+        return parse_key_value(CommandType::Set, {tokens.begin()+1, tokens.end()});
+    }
+
+    if (command == "GET") {
+        return parse_single_key(CommandType::Get, {tokens.begin()+1, tokens.end()});
+    }
+
+    if (command == "DEL") {
+        if (tokens.size() < 2) return std::unexpected(ParseError::InvalidArguments);
+
+        std::vector<std::string> keys;
+        for (std::size_t i = 1; i < tokens.size(); ++i) {
+            keys.push_back(tokens[i]);
         }
-        if (extra_token(iss)){
-            return ParseError::ExtraTokens;
-        }
+
+        return Command{CommandType::Del, keys};
+    }
+
+    if (command == "INCR") {
+        return parse_single_key(CommandType::Incr, {tokens.begin()+1, tokens.end()});
+    }
+
+    if (command == "INCRBY") {
+        return parse_key_and_int(CommandType::IncrBy, {tokens.begin()+1, tokens.end()});
+    }
+
+    if (command == "DECR") {
+        return parse_single_key(CommandType::Decr, {tokens.begin()+1, tokens.end()});
+    }
+
+    if (command == "DECRBY") {
         
-        return ParseError::None;
+        return parse_key_and_int(CommandType::DecrBy, {tokens.begin()+1, tokens.end()});
     }
 
-    ParseError parse_key_and_int(std::istringstream& iss, std::string& key, int& amount){
-        if (!(iss >> key)){
-            return ParseError::MissingKey;
-        }
+    if (command == "APPEND") {
+        return parse_key_value(CommandType::Append, {tokens.begin()+1, tokens.end()});
+    }
 
-        if (!(iss >> amount)){
-            if (iss.eof()){
-                return ParseError::MissingValue;
+    if (command == "QUIT") {
+        if (tokens.size() != 1) return std::unexpected(ParseError::InvalidArguments);
+        return Command{CommandType::Quit, {}};
+    }
+
+    return std::unexpected(ParseError::UnknownCommand);
+}
+
+std::vector<std::string> Parser::tokenize(const std::string& input) {
+    std::istringstream iss(input);
+
+    std::vector<std::string> tokens;
+    std::string token;
+
+    while (iss >> token) {
+        tokens.push_back(token);
+    }
+
+    return tokens;
+}
+
+std::string Parser::to_upper(std::string text) {
+    std::transform(
+        text.begin(),
+        text.end(),
+        text.begin(),
+        [](unsigned char c) {
+            return std::toupper(c);
+        }
+    );
+
+    return text;
+}
+
+ParseResult<Command, ParseError> Parser::parse_key_value(const CommandType& command, const std::vector<std::string>& remaining_tokens){
+    if (remaining_tokens.size() < 2) return std::unexpected(ParseError::InvalidArguments);
+
+        std::string key = remaining_tokens[0];
+        std::string value;
+
+        //Quoted value: SET Key "hello world"
+        if (remaining_tokens[1] == "\""){
+            if (remaining_tokens.size() < 3)
+                return std::unexpected(ParseError::UnterminatedQuote);
+            bool closed = false;
+
+            for (size_t i = 2; i < remaining_tokens.size(); ++i){
+                if (remaining_tokens[i] == "\""){
+                    closed = true;
+                    break;
+                }
+                if (!value.empty()){
+                    value += " ";
+                }
+                value += remaining_tokens[i];
+
             }
-            return ParseError::InvalidInteger;
+            if (!closed) return std::unexpected(ParseError::UnterminatedQuote);
+        }else{
+            if (remaining_tokens.size() > 2) return std::unexpected(ParseError::InvalidArguments);
+            value = remaining_tokens[1];
         }
-        if (extra_token(iss)){
-            return ParseError::ExtraTokens;
-        }
+        return Command{command, {key, value}};
+}
 
-        return ParseError::None;
-        }    
-    }
-    
-
-    Command parse_command_type(std::string command) {
-        command = to_upper(command);
-
-        if (command == "SET") return Command::Set;
-        if (command == "GET") return Command::Get;
-        if (command == "DEL") return Command::Del;
-        if (command == "INCR") return Command::Incr;
-        if (command == "INCRBY") return Command::IncrBy;
-        if (command == "DECR") return Command::Decr;
-        if (command == "DECRBY") return Command::DecrBy;
-        if (command == "APPEND") return Command::Append;
-        if (command == "QUIT" || command == "EXIT") return Command::Quit;
-
-        return Command::Unknown;
-    }
-
-    ParseError parse_del(std::istringstream& iss, std::vector<std::string>& keys){
-        // DEL accepts one or more keys:
-        // DEL key1 key2 key3
-        std::string key;
-
-        while (iss >> key){
-            keys.push_back(key);
-        }
-        if (keys.empty()){
-            return ParseError::MissingKey;
-        }
-        return ParseError::None;
-
-    }
-
-    ParseError parse_set(std::istringstream &iss, std::string &key, std::string &value){
-        return parse_key_and_value(iss, key, value);
-    }
-
-    ParseError parse_append(std::istringstream &iss, std::string &key, std::string &value){
-        return parse_key_and_value(iss, key, value);
-    }
-
-    ParseError parse_get(std::istringstream &iss, std::string &key){
-        return parse_single_key(iss, key);
-    }
-
-    ParseError parse_incr(std::istringstream& iss, std::string& key) {
-        return parse_single_key(iss, key);
-    }
-
-    ParseError parse_decr(std::istringstream &iss, std::string &key){
-        return parse_single_key(iss, key);
-    }
-
-    ParseError parse_incrby(std::istringstream& iss, std::string& key, int& amount) {
-        return parse_key_and_int(iss, key, amount);
-    }
-
-    ParseError parse_decrby(std::istringstream& iss, std::string& key, int& amount) {
-        return parse_key_and_int(iss, key, amount);
-    }
-
+ParseResult<Command, ParseError>Parser::parse_single_key(const CommandType& command, const std::vector<std::string>& remaining_tokens){
+     if (remaining_tokens.size() != 1) return std::unexpected(ParseError::InvalidArguments);
+        return Command{command, {remaining_tokens[1]}};
+}
+ParseResult<Command, ParseError>Parser::parse_key_and_int(const CommandType& command, const std::vector<std::string>& remaining_tokens){
+    if (remaining_tokens.size() != 2) return std::unexpected(ParseError::InvalidArguments);
+    return Command(command, remaining_tokens);
 }
