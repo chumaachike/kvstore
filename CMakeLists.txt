@@ -26,6 +26,15 @@ add_library(server
     src/server.cpp
 )
 
+add_library(server_loop
+    src/server_loop.cpp
+)
+
+target_include_directories(server_loop
+    PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
 target_include_directories(server
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -46,6 +55,11 @@ target_link_libraries(command_executor
         parser
 )
 
+target_link_libraries(server_loop
+    PUBLIC
+        command_executor
+)
+
 add_executable(kvstore
     src/main.cpp
 )
@@ -56,6 +70,7 @@ target_link_libraries(kvstore
         parser
         server
         command_executor
+        server_loop
 )
 
 include(CTest)
@@ -75,6 +90,8 @@ add_executable(kvstore_test
     tests/store_test.cpp
     tests/parser_test.cpp
     tests/concurrency_test.cpp
+    tests/command_executor_test.cpp
+    tests/tcp_connection_test.cpp
 )
 
 target_link_libraries(kvstore_test
@@ -82,6 +99,8 @@ target_link_libraries(kvstore_test
         store
         parser
         command_executor
+        server_loop
+        server
         GTest::gtest_main
 )
 
