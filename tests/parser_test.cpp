@@ -1,108 +1,195 @@
-// #include <sstream>
-// #include <vector>
-// #include <gtest/gtest.h>
-// #include "parser.hpp"
+#include <gtest/gtest.h>
+#include "parser.hpp"
 
-// TEST(ParserTest, ParseCommandTypeIsCaseInsensitive) {
-//     EXPECT_EQ(cli::parse_command_type("set"), cli::Command::Set);
-//     EXPECT_EQ(cli::parse_command_type("GET"), cli::Command::Get);
-//     EXPECT_EQ(cli::parse_command_type("DeL"), cli::Command::Del);
-// }
+TEST(ParserTest, ParseCommandTypeIsCaseInsensitive) {
+    Parser parser;
 
-// TEST(ParserTest, ParseCommandTypeReturnsUnknownForInvalidCommand) {
-//     EXPECT_EQ(cli::parse_command_type("BOGUS"), cli::Command::Unknown);
-// }
+    auto set = parser.parse("set name Edward");
+    ASSERT_TRUE(set);
+    EXPECT_EQ(set->type, CommandType::Set);
 
-// TEST(ParserTest, ParseSetParsesKeyAndValue) {
-//     std::istringstream iss("name Edward");
-//     std::string key;
-//     std::string value;
+    auto get = parser.parse("GET name");
+    ASSERT_TRUE(get);
+    EXPECT_EQ(get->type, CommandType::Get);
 
-//     auto error = cli::parse_set(iss, key, value);
+    auto del = parser.parse("DeL name");
+    ASSERT_TRUE(del);
+    EXPECT_EQ(del->type, CommandType::Del);
+}
 
-//     EXPECT_EQ(error, cli::ParseError::None);
-//     EXPECT_EQ(key, "name");
-//     EXPECT_EQ(value, "Edward");
-// }
+TEST(ParserTest, ParseCommandTypeReturnsUnknownForInvalidCommand) {
+    Parser parser;
 
-// TEST(ParserTest, ParseSetSupportsQuotedValues) {
-//     std::istringstream iss("name \"Edward Achike\"");
-//     std::string key;
-//     std::string value;
+    auto result = parser.parse("BOGUS");
 
-//     auto error = cli::parse_set(iss, key, value);
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), ParseError::UnknownCommand);
+}
 
-//     EXPECT_EQ(error, cli::ParseError::None);
-//     EXPECT_EQ(key, "name");
-//     EXPECT_EQ(value, "Edward Achike");
-// }
+TEST(ParserTest, ParseSetParsesKeyAndValue) {
+    Parser parser;
 
-// TEST(ParserTest, ParseValueRejectsExtraTokens) {
-//     std::istringstream iss("name extra");
-//     std::string key;
+    auto result = parser.parse("SET name Edward");
 
-//     auto error = cli::parse_get(iss, key);
+    ASSERT_TRUE(result.has_value());
 
-//     EXPECT_EQ(error, cli::ParseError::ExtraTokens);
-// }
+    EXPECT_EQ(result->type, CommandType::Set);
+    EXPECT_EQ(result->args[0], "name");
+    EXPECT_EQ(result->args[1], "Edward");
+}
 
-// TEST(ParserTest, ParseDelAcceptsMultipleKeys) {
-//     std::istringstream iss("name age language");
-//     std::vector<std::string> keys;
+TEST(ParserTest, ParseSetSupportsQuotedValues) {
+    Parser parser;
+    auto result = parser.parse("SET name \"Edward Achike\"");
+    ASSERT_TRUE(result.has_value());
 
-//     auto error = cli::parse_del(iss, keys);
+    EXPECT_EQ(result->type,CommandType::Set);
+    EXPECT_EQ(result->args[0], "name");
+    EXPECT_EQ(result->args[1], "Edward Achike");
+}
 
-//     EXPECT_EQ(error, cli::ParseError::None);
-//     EXPECT_EQ(keys, std::vector<std::string>({"name", "age", "language"}));
-// }
+TEST(ParserTest, ParseSetReturnsUnterminatedQuoteForMissingClosingQuote){
+    Parser parser;
+    auto result = parser.parse("SET name \" Edward");
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), ParseError::UnterminatedQuote);
+}
 
-// TEST(ParserTest, ParseValueRejectsUnterminatedQuote){
-//     std::istringstream iss ("name \"start quote without end");
-//     std::string key, value;
-//     auto error = cli::parse_set(iss, key, value);
+TEST(ParserTest, ParseSetSupportsMultiWordQuotedValue) {
+    Parser parser;
 
-//     EXPECT_EQ(error, cli::ParseError::UnterminatedQuote);
-// }
+    auto result = parser.parse("SET name \"Edward Achike\"");
 
-// TEST(ParserTest, ParseIncrByParsesAmount) {
-//     std::istringstream iss("counter 5");
+    ASSERT_TRUE(result);
+    EXPECT_EQ(result->type, CommandType::Set);
+    EXPECT_EQ(result->args[0], "name");
+    EXPECT_EQ(result->args[1], "Edward Achike");
+}
 
-//     std::string key;
-//     int amount;
+TEST(ParserTest, ParseSetSupportsOpeningAndClosingQuoteAsOwnTokens) {
+    Parser parser;
 
-//     auto error = cli::parse_incrby(iss, key, amount);
+    auto result = parser.parse("SET name \" Edward \"");
 
-//     EXPECT_EQ(error, cli::ParseError::None);
-//     EXPECT_EQ(key, "counter");
-//     EXPECT_EQ(amount, 5);
-// }
+    ASSERT_TRUE(result);
+    EXPECT_EQ(result->type, CommandType::Set);
+    EXPECT_EQ(result->args[0], "name");
+    EXPECT_EQ(result->args[1], " Edward ");
+}
 
-// TEST(ParserTest, ParseIncrByRejectsMissingAmount) {
-//     std::istringstream iss("counter   ");
-//     std::string key;
-//     int amount = 0;
+TEST(ParserTest, ParseValueRejectsExtraTokens) {
+    Parser parser;
 
-//     auto error = cli::parse_incrby(iss, key, amount);
+    auto result = parser.parse("SET name \" Edward \" extra tokens");
 
-//     EXPECT_EQ(error, cli::ParseError::MissingValue);
-// }
+    ASSERT_FALSE(result);
 
-// TEST(ParserTest, ParseIncrByRejectsInvalidAmount) {
-//     std::istringstream iss("counter five");
-//     std::string key;
-//     int amount = 0;
+    EXPECT_EQ(result.error(), ParseError::InvalidArguments);
+}
 
-//     auto error = cli::parse_incrby(iss, key, amount);
+TEST(ParserTest, ParseDelAcceptsMultipleKeys) {
+    Parser parser;
 
-//     EXPECT_EQ(error, cli::ParseError::InvalidInteger);
-// }
+    auto result = parser.parse("DEL name age language");
 
-// TEST(ParserTest, ParseIncrByRejectsExtraTokens) {
-//     std::istringstream iss("counter 5 extra");
-//     std::string key;
-//     int amount = 0;
+    ASSERT_TRUE(result.has_value());
 
-//     auto error = cli::parse_incrby(iss, key, amount);
+    EXPECT_EQ(result->type, CommandType::Del);
+    ASSERT_EQ(result->args.size(), 3);
 
-//     EXPECT_EQ(error, cli::ParseError::ExtraTokens);
-// }
+    EXPECT_EQ(result->args[0], "name");
+    EXPECT_EQ(result->args[1], "age");
+    EXPECT_EQ(result->args[2], "language");
+}
+
+TEST(ParserTest, ParseIncrByParsesAmount) {
+    Parser parser;
+    auto result = parser.parse("INCRBY counter 5");
+
+    ASSERT_TRUE(result);
+
+    EXPECT_EQ(result->args[0], "counter");
+    EXPECT_EQ(result->args[1], "5");
+}
+
+TEST(ParserTest, ParseIncrByRejectsMissingAmount) {
+    Parser parser;
+    auto result = parser.parse("INCRBY counter   ");
+
+    ASSERT_FALSE(result);
+
+    EXPECT_EQ(result.error(), ParseError::InvalidArguments);
+}
+
+TEST(ParserTest, ParseIncrByRejectsInvalidAmount) {
+    Parser parser;
+    auto result = parser.parse("INCR counter five");
+    ASSERT_FALSE(result);
+
+    EXPECT_EQ(result.error(), ParseError::InvalidArguments);
+}
+
+TEST(ParserTest, ParseIncrByRejectsExtraTokens) {
+    Parser parser;
+    auto result = parser.parse("INCRBY counter 5 extra");
+
+    ASSERT_FALSE(result);
+
+    EXPECT_EQ(result.error(), ParseError::InvalidArguments);
+}
+
+TEST(ParserTest, ParseEmptyInputReturnsEmptyInputError) {
+    Parser parser;
+
+    auto result = parser.parse("");
+
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), ParseError::EmptyInput);
+}
+
+TEST(ParserTest, ParseGetRejectsExtraTokens) {
+    Parser parser;
+
+    auto result = parser.parse("GET name extra");
+
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), ParseError::InvalidArguments);
+}
+
+TEST(ParserTest, ParseDelRejectsMissingKey) {
+    Parser parser;
+
+    auto result = parser.parse("DEL");
+
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), ParseError::InvalidArguments);
+}
+
+TEST(ParserTest, ParseQuitRejectsArguments) {
+    Parser parser;
+
+    auto result = parser.parse("QUIT now");
+
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), ParseError::InvalidArguments);
+}
+
+TEST(ParserTest, ParseSetRejectsMissingValue) {
+    Parser parser;
+
+    auto result = parser.parse("SET name");
+
+    ASSERT_FALSE(result);
+    EXPECT_EQ(result.error(), ParseError::InvalidArguments);
+}
+
+TEST(ParserTest, ParseIncrByParsesCommandTypeKeyAndAmount) {
+    Parser parser;
+
+    auto result = parser.parse("INCRBY counter 5");
+
+    ASSERT_TRUE(result);
+    EXPECT_EQ(result->type, CommandType::IncrBy);
+    EXPECT_EQ(result->args[0], "counter");
+    EXPECT_EQ(result->args[1], "5");
+}

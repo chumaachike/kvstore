@@ -130,8 +130,8 @@ ParseResult<Command, ParseError> Parser::parse_key_value(const CommandType& comm
             return std::unexpected(ParseError::InvalidArguments);
         }
 
-        value.erase(value.begin()); // remove opening quote
-        value.pop_back();          // remove closing quote
+        value.erase(value.begin());
+        value.pop_back();          
 
         return Command{command, {key, value}};
     }
@@ -167,7 +167,7 @@ ParseResult<Command, ParseError> Parser::parse_key_and_int(
             return std::unexpected(ParseError::InvalidInteger);
         }
     } catch (...) {
-        return std::unexpected(ParseError::InvalidArguments);
+        return std::unexpected(ParseError::InvalidInteger);
     }
 
     return Command{command, remaining_tokens};
