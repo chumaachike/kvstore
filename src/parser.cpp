@@ -87,37 +87,62 @@ std::string Parser::to_upper(std::string text) {
     return text;
 }
 
-ParseResult<Command, ParseError> Parser::parse_key_value(const CommandType& command, const std::vector<std::string>& remaining_tokens){
-    if (remaining_tokens.size() < 2) return std::unexpected(ParseError::InvalidArguments);
+ParseResult<Command, ParseError> Parser::parse_key_value(const CommandType& command, const std::vector<std::string>& remaining_tokens) {
+    if (remaining_tokens.size() < 2) {
+        return std::unexpected(ParseError::InvalidArguments);
+    }
 
     std::string key = remaining_tokens[0];
     std::string value;
 
-    //Quoted value: SET Key "hello world"
-    if (!remaining_tokens[1].empty() && remaining_tokens[1].front() == '"'){
-        bool closed = false;
+    const std::string& first_value_token = remaining_tokens[1];
 
-        for (size_t i = 1; i < remaining_tokens.size(); ++i){
-            if (i > 1)
+    // Quoted value
+    if (!first_value_token.empty() && first_value_token.front() == '"') {
+        bool closed = false;
+        std::size_t closing_index = 0;
+
+        for (std::size_t i = 1; i < remaining_tokens.size(); ++i) {
+            if (i > 1) {
                 value += ' ';
+            }
 
             value += remaining_tokens[i];
 
-            if (!remaining_tokens[i].empty() && remaining_tokens[i].back() == '"'){
+            // Check different variations of closing quote 
+            bool is_closing_quote =
+                value.size() >= 2 &&
+                value.back() == '"';
+
+            if (is_closing_quote) {
                 closed = true;
+                closing_index = i;
                 break;
             }
         }
 
-        if (!closed)
+        if (!closed) {
             return std::unexpected(ParseError::UnterminatedQuote);
+        }
 
-        value.erase(0, 1);      // remove opening quote
-        value.pop_back();       // remove closing quote
-    }else{
-        if (remaining_tokens.size() > 2) return std::unexpected(ParseError::InvalidArguments);
-        value = remaining_tokens[1];
+        // Anything after closing quote is invalid: SET name "Edward" extra
+        if (closing_index != remaining_tokens.size() - 1) {
+            return std::unexpected(ParseError::InvalidArguments);
+        }
+
+        value.erase(value.begin()); // remove opening quote
+        value.pop_back();          // remove closing quote
+
+        return Command{command, {key, value}};
     }
+
+    // Unquoted value
+    if (remaining_tokens.size() != 2) {
+        return std::unexpected(ParseError::InvalidArguments);
+    }
+
+    value = remaining_tokens[1];
+
     return Command{command, {key, value}};
 }
 
