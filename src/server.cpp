@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <thread>
+#include <signal.h>
 
 #include "server.hpp"
 
@@ -43,6 +44,10 @@ std::optional<std::string> TCPServer::recv_line(int fd) {
             }
 
             line.push_back(c);
+
+            if (line.size() > MAX_MESSAGE_SIZE) {
+                return std::nullopt;
+            }
         }
         else if (n == 0) {
             // client closed connection
@@ -101,12 +106,15 @@ void TCPServer::start(uint16_t port){
     if (listen(server_fd_, SOMAXCONN) == -1){
         close(server_fd_);
         throw std::runtime_error(std::string("listen: ") + std::strerror(errno));
-    }   
+    }  
+    signal(SIGPIPE, SIG_IGN);
+     
     while (true){
         int client_fd = accept_client();
         std::cout<<"Client connected ID: "<< client_fd << "\n";
         std::thread(&TCPServer::handle_client, this, client_fd).detach();
     }
+    
 }
 
 int TCPServer::accept_client(){
