@@ -2,6 +2,7 @@
 
 #include <string>
 #include "store.hpp"
+#include "parser.hpp"
 
 
 enum class CommandStatus {
@@ -18,8 +19,10 @@ class CommandExecutor {
 public:
     explicit CommandExecutor(KVStore& store);
 
-    std::string execute(const std::string& input);
+    CommandResult execute(const std::string& input);
 
 private:
     KVStore& store;
+    Parser parser;
+    std::string handle_set(const std::vector<std::string>& args);
 };
