@@ -1,6 +1,9 @@
 #include "parser.hpp"
 #include "command_executor.hpp"
 
+CommandExecutor::CommandExecutor(KVStore& store)
+    : store(store) {}
+
 CommandResult CommandExecutor::execute(const std::string& input){
     auto parsed_input = parser.parse(input);
     if (!parsed_input){
@@ -12,33 +15,43 @@ CommandResult CommandExecutor::execute(const std::string& input){
     switch (command) {
         case CommandType::Set:
             store.set(parsed_input->args[0], parsed_input->args[1]);
-            result.response = "OK\n";
+            result.response = "OK";
             break;
-        case CommandType::Get:
-            result.response = store.get(parsed_input->args[0]).value();
+        case CommandType::Get:{
+            auto value= store.get(parsed_input->args[0]);
+            result.response = (value) ? *value : "nil";
             break;
+        }
         case CommandType::Del:
-            result.response = store.erase(parsed_input->args);
+            result.response = std::to_string(store.erase(parsed_input->args));
             break;
-        case CommandType::Incr:
-            result.response = store.increase_by(parsed_input->args[0], 1).value();
+        case CommandType::Incr:{
+            auto value = store.increase_by(parsed_input->args[0], 1);
+            result.response = (value) ? std::to_string(*value)  : "nil";
             break;
-        case CommandType::IncrBy:
-            result.response = store.increase_by(parsed_input->args[0], std::stoi(parsed_input->args[1])).value();
+        }
+        case CommandType::IncrBy:{
+             auto value = store.increase_by(parsed_input->args[0], std::stoi(parsed_input->args[1]));
+            result.response = value ? std::to_string(*value)   : "nil";
             break;
-        case CommandType::Decr:
-            result.response = store.increase_by(parsed_input->args[0], -1).value();
+        }
+        case CommandType::Decr:{
+            auto value = store.increase_by(parsed_input->args[0], -1);
+            result.response = (value) ? std::to_string(*value) : "nil";
             break;
-        case CommandType::DecrBy:
-            result.response = store.increase_by(parsed_input->args[0], -std::stoi(parsed_input->args[1])).value();
+        }
+        case CommandType::DecrBy:{auto value = store.increase_by(parsed_input->args[0], -std::stoi(parsed_input->args[1]));
+            result.response = value ? std::to_string(*value) : "nil";
             break;
+        }
         case CommandType::Append:
             result.response = store.append(parsed_input->args[0], parsed_input->args[1]);
             break;
         case CommandType::Quit:
             result.status = CommandStatus::Quit;
-            result.response = "Bye\n";
+            result.response = "Bye";
             break;
     }
+    result.response += "\n";
     return result;
 }

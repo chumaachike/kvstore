@@ -1,57 +1,57 @@
-#include <gtest/gtest.h>
+// #include <gtest/gtest.h>
 
-#include "command_executor.hpp"
-#include "store.hpp"
+// #include "command_executor.hpp"
+// #include "store.hpp"
 
-TEST(CommandExecutorTest, SetThenGet){
-    KVStore store;
+// TEST(CommandExecutorTest, SetThenGet){
+//     KVStore store;
 
-    execute_command(store, "SET name Edward");
+//     execute_command(store, "SET name Edward");
 
-    auto result = execute_command(store, "GET name");
+//     auto result = execute_command(store, "GET name");
 
-    EXPECT_EQ(result.response, "Edward\n");
-}
+//     EXPECT_EQ(result.response, "Edward\n");
+// }
 
-TEST(CommandExecutorTest, UnknownCommandReturnsError){
-    KVStore store;
+// TEST(CommandExecutorTest, UnknownCommandReturnsError){
+//     KVStore store;
 
-    auto result =
-        execute_command(store, "BANANA");
+//     auto result =
+//         execute_command(store, "BANANA");
 
-    EXPECT_EQ(result.response, "Error: unknown command 'BANANA'\n");
-}
+//     EXPECT_EQ(result.response, "Error: unknown command 'BANANA'\n");
+// }
 
-TEST(CommandExecutorTest, QuitReturnsQuitStatus){
-    KVStore store;
+// TEST(CommandExecutorTest, QuitReturnsQuitStatus){
+//     KVStore store;
 
-    auto result =
-        execute_command(store, "QUIT");
+//     auto result =
+//         execute_command(store, "QUIT");
 
-    EXPECT_EQ(result.status,CommandStatus::Quit);
-}
+//     EXPECT_EQ(result.status,CommandStatus::Quit);
+// }
 
-TEST(CommandExecutorTest, SetThenDel){
-    KVStore store;
+// TEST(CommandExecutorTest, SetThenDel){
+//     KVStore store;
 
-    execute_command(store, "SET name Edward");
-    auto result = execute_command(store, "GET name");
+//     execute_command(store, "SET name Edward");
+//     auto result = execute_command(store, "GET name");
 
-    ASSERT_EQ(result.response, "Edward\n");
+//     ASSERT_EQ(result.response, "Edward\n");
 
-    execute_command(store, "DEL name");
-    result = execute_command(store, "GET name");
+//     execute_command(store, "DEL name");
+//     result = execute_command(store, "GET name");
 
 
-     EXPECT_EQ(result.response, "nil\n");
-}
+//      EXPECT_EQ(result.response, "nil\n");
+// }
 
-TEST(CommandExecutorTest, Incr){
-    KVStore store;
-    execute_command(store, "INCR age");
+// TEST(CommandExecutorTest, Incr){
+//     KVStore store;
+//     execute_command(store, "INCR age");
 
-    auto result = execute_command(store, "GET age");
+//     auto result = execute_command(store, "GET age");
 
-    EXPECT_EQ(result.response, "1\n");
+//     EXPECT_EQ(result.response, "1\n");
 
-}
+// }

@@ -139,7 +139,7 @@ ParseResult<Command, ParseError> Parser::parse_key_and_int(
         std::stoi(remaining_tokens[1], &pos);
 
         if (pos != remaining_tokens[1].size()) {
-            return std::unexpected(ParseError::InvalidArguments);
+            return std::unexpected(ParseError::InvalidInteger);
         }
     } catch (...) {
         return std::unexpected(ParseError::InvalidArguments);

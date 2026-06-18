@@ -4,12 +4,14 @@
 #include <cerrno>
 #include <sys/socket.h>
 #include <stdexcept>
+#include <iostream>
+#include <thread>
 
 #include "server.hpp"
 
-void TCPServer::stop(int client_fd){
-    close(client_fd);
-}
+TCPServer::TCPServer(CommandExecutor executor)
+    : executor(std::move(executor)) {}
+
 bool TCPServer::send_all(int fd, const char* data, size_t len){
     size_t total = 0;
 
@@ -100,6 +102,11 @@ void TCPServer::start(uint16_t port){
         close(server_fd_);
         throw std::runtime_error(std::string("listen: ") + std::strerror(errno));
     }   
+    while (true){
+        int client_fd = accept_client();
+        std::cout<<"Client connected ID: "<< client_fd << "\n";
+        std::thread(&TCPServer::handle_client, this, client_fd).detach();
+    }
 }
 
 int TCPServer::accept_client(){
@@ -112,4 +119,30 @@ int TCPServer::accept_client(){
         throw std::runtime_error(std::string("accept: ") + std::strerror(errno));        
     }
     return client_fd; 
+}
+
+void TCPServer::handle_client(int client_fd){
+    while (true){
+        auto command_line = recv_line(client_fd);
+
+        if (!command_line){
+            std::cerr << "Client disconnected\n";
+            close(client_fd);
+            return;
+        }
+
+        auto result = executor.execute(*command_line);
+
+        if (!send_all(client_fd, result.response.c_str(), result.response.size())){
+            std::cerr << "Failed to send response\n";
+            close(client_fd);
+            return;
+        }
+        
+        if (result.status == CommandStatus::Quit){
+            std::cout << "Client: " << client_fd << " quit\n";
+            close(client_fd);
+            return;
+        }
+    }
 }
