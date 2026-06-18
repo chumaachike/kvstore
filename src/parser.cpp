@@ -125,7 +125,25 @@ ParseResult<Command, ParseError>Parser::parse_single_key(const CommandType& comm
      if (remaining_tokens.size() != 1) return std::unexpected(ParseError::InvalidArguments);
         return Command{command, {remaining_tokens[0]}};
 }
-ParseResult<Command, ParseError>Parser::parse_key_and_int(const CommandType& command, const std::vector<std::string>& remaining_tokens){
-    if (remaining_tokens.size() != 2) return std::unexpected(ParseError::InvalidArguments);
+
+ParseResult<Command, ParseError> Parser::parse_key_and_int(
+    const CommandType& command,
+    const std::vector<std::string>& remaining_tokens
+) {
+    if (remaining_tokens.size() != 2) {
+        return std::unexpected(ParseError::InvalidArguments);
+    }
+
+    try {
+        std::size_t pos = 0;
+        std::stoi(remaining_tokens[1], &pos);
+
+        if (pos != remaining_tokens[1].size()) {
+            return std::unexpected(ParseError::InvalidArguments);
+        }
+    } catch (...) {
+        return std::unexpected(ParseError::InvalidArguments);
+    }
+
     return Command{command, remaining_tokens};
 }
