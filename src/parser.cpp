@@ -147,3 +147,24 @@ ParseResult<Command, ParseError> Parser::parse_key_and_int(
 
     return Command{command, remaining_tokens};
 }
+
+std::string_view Parser::parse_error(ParseError error){
+    switch (error) {
+        case ParseError::EmptyInput:
+            return "";
+
+        case ParseError::InvalidArguments:
+            return "ERR invalid arguments";
+
+        case ParseError::InvalidInteger:
+            return "ERR invalid integer";
+
+        case ParseError::UnterminatedQuote:
+            return "ERR unterminated quote";
+
+        case ParseError::UnknownCommand:
+            return "ERR unknown command";
+    }
+
+    return "ERR unknown parse error";
+}

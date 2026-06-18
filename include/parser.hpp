@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <expected>
+#include <string_view>
 
 enum class ParseError  {
     EmptyInput,
@@ -35,6 +36,7 @@ using ParseResult = std::expected<T, E>;
 class Parser {
 public:
     ParseResult<Command, ParseError> parse(const std::string& input);
+    std::string_view parse_error(ParseError error);
 
 private:
     static std::vector<std::string> tokenize(const std::string& input);

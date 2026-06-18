@@ -7,7 +7,7 @@ CommandExecutor::CommandExecutor(KVStore& store)
 CommandResult CommandExecutor::execute(const std::string& input){
     auto parsed_input = parser.parse(input);
     if (!parsed_input){
-        return {CommandStatus::Continue, "Err"};
+        return {CommandStatus::Continue, std::string(parser.parse_error(parsed_input.error())) +"\n"};
     }
     auto command = parsed_input->type;
 
