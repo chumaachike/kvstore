@@ -58,36 +58,33 @@ target_link_libraries(kvstore
         command_executor
 )
 
-# include(CTest)
-# include(FetchContent)
+include(CTest)
+include(FetchContent)
 
-# FetchContent_Declare(
-#     googletest
-#     GIT_REPOSITORY https://github.com/google/googletest.git
-#     GIT_TAG 7140cd416cecd7462a8aae488024abeee55598e4
-# )
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG 7140cd416cecd7462a8aae488024abeee55598e4
+)
 
-# set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-# FetchContent_MakeAvailable(googletest)
+FetchContent_MakeAvailable(googletest)
 
-# add_executable(kvstore_test
-#     tests/store_test.cpp
-#     tests/parser_test.cpp
-#     tests/concurrency_test.cpp
-#     tests/command_executor_test.cpp
-#     tests/tcp_connection_test.cpp
-# )
+add_executable(kvstore_test
+    tests/store_test.cpp
+    tests/parser_test.cpp
+    tests/concurrency_test.cpp
+    tests/command_executor_test.cpp
+)
 
-# target_link_libraries(kvstore_test
-#     PRIVATE
-#         store
-#         parser
-#         command_executor
-#         server_loop
-#         server
-#         GTest::gtest_main
-# )
+target_link_libraries(kvstore_test
+     PRIVATE
+        store
+        parser
+       command_executor
+        GTest::gtest_main
+)
 
-# include(GoogleTest)
-# gtest_discover_tests(kvstore_test)
+include(GoogleTest)
+gtest_discover_tests(kvstore_test)
