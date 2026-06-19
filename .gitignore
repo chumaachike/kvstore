@@ -74,3 +74,5 @@ temp/
 hhh.txt
 build-tsan/
 __pycache__
+appendonly.aof
+dump.kv

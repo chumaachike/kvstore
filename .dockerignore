@@ -1,0 +1,9 @@
+build/
+.git/
+.cache/
+.pytest_cache/
+.venv/
+.vscode/
+hhh.txt
+appendonly.aof
+dump.kv
