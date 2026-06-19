@@ -53,6 +53,7 @@ target_link_libraries(command_executor
     PUBLIC
         store
         parser
+        logger
 )
 
 add_executable(kvstore

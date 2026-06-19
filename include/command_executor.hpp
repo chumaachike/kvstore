@@ -3,6 +3,7 @@
 #include <string>
 #include "store.hpp"
 #include "parser.hpp"
+#include "logger.hpp"
 
 
 enum class CommandStatus {
@@ -17,12 +18,13 @@ struct CommandResult {
 
 class CommandExecutor {
 public:
-    explicit CommandExecutor(KVStore& store);
+    CommandExecutor(KVStore& store, AOFLogger* logger);
 
     CommandResult execute(const std::string& input);
 
 private:
     KVStore& store;
     Parser parser;
+    AOFLogger* logger;
     std::string handle_set(const std::vector<std::string>& args);
 };

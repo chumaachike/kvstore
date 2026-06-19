@@ -5,7 +5,7 @@
 
 TEST(CommandExecutorTest, SetThenGet){
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     auto set_result = executor.execute( "SET name Edward");
     ASSERT_EQ(set_result.response, "OK\n");    
@@ -17,7 +17,7 @@ TEST(CommandExecutorTest, SetThenGet){
 TEST(CommandExecutorTest, UnknownCommandReturnsError){
     KVStore store;
 
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
     auto result =executor.execute( "BANANA");
 
     EXPECT_EQ(result.response, "ERR unknown command\n");
@@ -25,7 +25,7 @@ TEST(CommandExecutorTest, UnknownCommandReturnsError){
 
 TEST(CommandExecutorTest, QuitReturnsQuitStatus){
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     auto result =executor.execute( "QUIT");
 
@@ -34,7 +34,7 @@ TEST(CommandExecutorTest, QuitReturnsQuitStatus){
 
 TEST(CommandExecutorTest, SetThenDel){
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     executor.execute( "SET name Edward");
     auto result = executor.execute("GET name");
@@ -50,7 +50,7 @@ TEST(CommandExecutorTest, SetThenDel){
 
 TEST(CommandExecutorTest, Incr){
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
     executor.execute( "INCR age");
 
     auto result = executor.execute( "GET age");
@@ -61,7 +61,7 @@ TEST(CommandExecutorTest, Incr){
 
 TEST(CommandExecutorTest, GetMissingKeyReturnsNil) {
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     auto result = executor.execute("GET missing");
 
@@ -70,7 +70,7 @@ TEST(CommandExecutorTest, GetMissingKeyReturnsNil) {
 
 TEST(CommandExecutorTest, DelReturnsNumberDeleted) {
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     executor.execute("SET a 1");
     executor.execute("SET b 2");
@@ -82,7 +82,7 @@ TEST(CommandExecutorTest, DelReturnsNumberDeleted) {
 
 TEST(CommandExecutorTest, IncrExistingInteger) {
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     executor.execute("SET count 41");
     auto result = executor.execute("INCR count");
@@ -92,7 +92,7 @@ TEST(CommandExecutorTest, IncrExistingInteger) {
 
 TEST(CommandExecutorTest, DecrExistingInteger) {
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     executor.execute("SET count 10");
     auto result = executor.execute("DECR count");
@@ -102,7 +102,7 @@ TEST(CommandExecutorTest, DecrExistingInteger) {
 
 TEST(CommandExecutorTest, IncrByWorks) {
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     auto result = executor.execute("INCRBY count 5");
 
@@ -111,7 +111,7 @@ TEST(CommandExecutorTest, IncrByWorks) {
 
 TEST(CommandExecutorTest, DecrByWorks) {
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     executor.execute("SET count 10");
     auto result = executor.execute("DECRBY count 3");
@@ -121,7 +121,7 @@ TEST(CommandExecutorTest, DecrByWorks) {
 
 TEST(CommandExecutorTest, AppendToMissingKeyCreatesValue) {
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     auto result = executor.execute("APPEND greeting hello");
 
@@ -130,7 +130,7 @@ TEST(CommandExecutorTest, AppendToMissingKeyCreatesValue) {
 
 TEST(CommandExecutorTest, AppendToExistingKey) {
     KVStore store;
-    CommandExecutor executor{store};
+    CommandExecutor executor{store, nullptr};
 
     executor.execute("SET greeting hello");
     auto result = executor.execute("APPEND greeting world");
