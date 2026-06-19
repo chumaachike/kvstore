@@ -16,6 +16,9 @@ class KVStore {
     std::size_t erase(const std::vector< std::string>& keys);
     std::optional<int>increase_by(const std::string& key, int num);
     std::string append(const std::string& key, const std::string& value);
+
+    void save_snapshot(const std::string& path)const;
+    void load_snapshot(const std::string& path);
     private:
     std::unordered_map<std::string, std::string>store;
     mutable std::shared_mutex mutex;

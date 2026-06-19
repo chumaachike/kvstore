@@ -1,5 +1,8 @@
 #include "store.hpp"
 #include <stdexcept>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 void KVStore::set(const std::string& key, const std::string& value) {
     std::lock_guard  lock(mutex);
@@ -74,4 +77,47 @@ std::string KVStore::append(const std::string& key, const std::string& value) {
 
     it->second.append(value);
     return it->second;
+}
+
+void KVStore::save_snapshot(const std::string& path)const{
+    std::shared_lock lock(mutex);
+
+    std::ofstream out(path, std::ios::out);
+
+    if (!out) throw std::runtime_error("Could not open snapshot file");
+
+    for (const auto& [key, value]: store){
+        out << "SET " << key << " " << value << '\n';
+    }
+
+}
+
+void KVStore::load_snapshot(const std::string& path){
+    std::ifstream in(path, std::ios::in);
+    if (!in){
+        return;
+    }
+    std::lock_guard lock(mutex);
+
+    store.clear();
+
+    std::string line;
+
+    while(std::getline(in, line)){
+        std::string command;
+        std::string key;
+        std::string value;
+
+        std::stringstream ss (line);
+        if (ss >> command >> key){
+            ss >> std::ws;
+
+            std::getline(ss, value);
+
+            if (command == "SET" ){
+                store.insert_or_assign(key, value);
+            }
+
+        }
+    }
 }
