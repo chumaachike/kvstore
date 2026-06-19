@@ -143,3 +143,58 @@ TEST_F(KVStoreFixture, AppendEmptyStringDoesNotChangeExistingValue) {
     EXPECT_EQ(result, "Edward");
     EXPECT_EQ(store.get("name").value(), "Edward");
 }
+
+TEST(KVStoreSnapshotTest, SaveAndLoadSnapshot){
+    const std::string path = "test_dump.kv";
+    {
+        KVStore store;
+        store.set("name", "Edward");
+        store.set("age", "33");
+        store.set("counter", "100");
+        store.set("note", "The quick brown fox");
+
+        store.save_snapshot(path);
+    }
+
+    {
+        KVStore loaded;
+        loaded.load_snapshot(path);
+
+        EXPECT_EQ(loaded.get("name"), std::optional<std::string>("Edward"));
+        EXPECT_EQ(loaded.get("age"), std::optional<std::string>("33"));
+        EXPECT_EQ(loaded.get("counter"), std::optional<std::string>("100"));
+        EXPECT_EQ(loaded.get("note"), std::optional<std::string>("The quick brown fox"));
+        EXPECT_EQ(loaded.get("missing"), std::nullopt);
+    }
+
+    std::remove(path.c_str());
+}
+
+TEST(KVStoreSnapshotTest, LoadSnapshotReplacesExistingStore) {
+    const std::string path = "test_dump.kv";
+
+    {
+        KVStore store;
+        store.set("name", "Edward");
+        store.save_snapshot(path);
+    }
+
+    KVStore loaded;
+    loaded.set("old", "value");
+
+    loaded.load_snapshot(path);
+
+    EXPECT_EQ(loaded.get("name"), std::optional<std::string>("Edward"));
+    EXPECT_EQ(loaded.get("old"), std::nullopt);
+
+    std::remove(path.c_str());
+}
+
+TEST(KVStoreSnapshotTest, MissingSnapshotDoesNothing) {
+    KVStore store;
+    store.set("name", "Edward");
+
+    store.load_snapshot("file_that_does_not_exist.kv");
+
+    EXPECT_EQ(store.get("name"), std::optional<std::string>("Edward"));
+}
