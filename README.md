@@ -91,7 +91,61 @@ The entire database state can be written to disk and restored on startup.
 ### Append Only File (AOF)
 Every mutating command is logged to an append-only file and replayed during recovery.
 
-- Recovery sequence: 
+#### Recovery sequence: 
 1. Load latest snapshot
 2. Replay AOF entries
 3. Resume serving requests
+
+## Concurrency
+The KVStore uses: 
+* std::shared_mutex
+* std::shared_lock
+* std::lock_guard
+Readers may execute concurrently while writers obtain exclusive access.
+
+## Testing
+
+### Run Tests
+
+Execute the test suite with:
+
+```bash
+ctest --test-dir build --output-on-failure
+```
+#### Server Test
+
+```bash
+source .venv/bin/activate
+pytest -v
+```
+
+### Framework
+
+The project uses **GoogleTest** for unit and integration testing.
+
+### Test Coverage
+
+Current tests cover:
+
+- Storage operations
+- Parser behavior
+- Command execution
+- Concurrent access scenarios
+
+## Continuous Integration
+
+GitHub Actions automatically:
+
+- Builds the project
+- Runs all tests
+- Verifies changes on every push and pull request
+
+## Future Improvements
+
+Planned enhancements include:
+
+- Key expiration (TTL)
+- RESP protocol compatibility
+- Replication
+- Publish/Subscribe messaging
+- Benchmark suite
