@@ -97,6 +97,7 @@ add_executable(kvstore_test
     tests/parser_test.cpp
     tests/concurrency_test.cpp
     tests/command_executor_test.cpp
+    tests/aof_test.cpp
 )
 
 target_link_libraries(kvstore_test

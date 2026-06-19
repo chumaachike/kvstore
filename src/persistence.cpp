@@ -3,8 +3,7 @@
 #include <string>
 
 #include "command_executor.hpp"
-
-namespace  {
+namespace persistence {
 void replay_aof(const std::string& path, CommandExecutor& executor) {
     std::ifstream in(path);
 
@@ -23,17 +22,16 @@ void replay_aof(const std::string& path, CommandExecutor& executor) {
     }
 }
 
-void rewrite_aof(KVStore& store,
-                 AOFLogger& logger) {
+void rewrite_aof(KVStore& store, AOFLogger& logger, const std::string& snapshot_path, const std::string& aof_path) {
     logger.close();
 
-    store.save_snapshot("dump.kv");
+    store.save_snapshot(snapshot_path);
 
-    std::ofstream clear("appendonly.aof", std::ios::trunc);
+    std::ofstream clear(aof_path, std::ios::trunc);
     if (!clear) {
         throw std::runtime_error("Could not clear AOF file");
     }
 
-    logger.reopen("appendonly.aof");
+    logger.reopen(aof_path);
 }
 }
