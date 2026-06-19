@@ -26,6 +26,15 @@ add_library(parser
     src/parser.cpp
 )
 
+add_library(persistence
+    src/persistence.cpp
+)
+
+target_include_directories(persistence
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
 target_include_directories(parser
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -67,6 +76,7 @@ target_link_libraries(kvstore
         server
         command_executor
         logger
+        persistence
 )
 
 include(CTest)
@@ -93,7 +103,8 @@ target_link_libraries(kvstore_test
      PRIVATE
         store
         parser
-       command_executor
+        command_executor
+        persistence
         GTest::gtest_main
 )
 

@@ -3,9 +3,13 @@
 #include "server.hpp"
 #include "command_executor.hpp"
 #include "logger.hpp"
+#include "persistence.hpp"
 
 int main() {
     KVStore kv_store;
+    kv_store.load_snapshot("dump.kv");
+    CommandExecutor replay_executor(kv_store, nullptr);
+    replay_aof("appendonly.aof", replay_executor);
 
     try {
         AOFLogger* logger = new AOFLogger("appendonly.aof");

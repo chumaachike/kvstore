@@ -1,6 +1,6 @@
 #include <stdexcept>
 
-#include "AOF_logger.hpp"
+#include "logger.hpp"
 
 AOFLogger::AOFLogger(const std::string& path)
     : out(path, std::ios::app) {

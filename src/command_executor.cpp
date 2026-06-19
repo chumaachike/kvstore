@@ -16,7 +16,7 @@ CommandResult CommandExecutor::execute(const std::string& input){
     switch (command) {
         case CommandType::Set:
             store.set(parsed_input->args[0], parsed_input->args[1]);
-            if (logger) logger->append("SET " + parsed_input->args[0] +" "+ parsed_input->args[1] + "\n"); 
+            if (logger) logger->append("SET " + parsed_input->args[0] +" "+ parsed_input->args[1]); 
             result.response = "OK";
             break;
         case CommandType::Get:{
@@ -32,37 +32,37 @@ CommandResult CommandExecutor::execute(const std::string& input){
                 for (const auto& key : parsed_input->args){
                     line += " " + key;
                 }
-                logger->append(line + "\n");
+                logger->append(line );
             }
             break;
         }
         case CommandType::Incr:{
             auto value = store.increase_by(parsed_input->args[0], 1);
             result.response = (value) ? std::to_string(*value)  : "nil";
-            if (logger) logger->append("INCR "+parsed_input->args[0] + "\n");
+            if (logger) logger->append("INCR "+parsed_input->args[0]);
             break;
         }
         case CommandType::IncrBy:{
              auto value = store.increase_by(parsed_input->args[0], std::stoi(parsed_input->args[1]));
             result.response = value ? std::to_string(*value)   : "nil";
-            if(logger) logger->append("INCRBY " + parsed_input->args[0] + " " +parsed_input->args[1] +"\n");
+            if(logger) logger->append("INCRBY " + parsed_input->args[0] + " " +parsed_input->args[1]);
             break;
         }
         case CommandType::Decr:{
             auto value = store.increase_by(parsed_input->args[0], -1);
             result.response = (value) ? std::to_string(*value) : "nil";
-            if (logger) logger->append("DECR "+ parsed_input->args[0] + "\n");
+            if (logger) logger->append("DECR "+ parsed_input->args[0]);
             break;
         }
         case CommandType::DecrBy:{
             auto value = store.increase_by(parsed_input->args[0], -std::stoi(parsed_input->args[1]));
             result.response = value ? std::to_string(*value) : "nil";
-            if (logger) logger->append("DECRBY "+parsed_input->args[0] + " " + parsed_input->args[1]+"\n");
+            if (logger) logger->append("DECRBY "+parsed_input->args[0] + " " + parsed_input->args[1]);
             break;
         }
         case CommandType::Append:{
             result.response = store.append(parsed_input->args[0], parsed_input->args[1]);
-            if (logger) logger->append("APPEND "+ parsed_input->args[0] + " " + parsed_input->args[1] +"\n");
+            if (logger) logger->append("APPEND "+ parsed_input->args[0] + " " + parsed_input->args[1]);
             break;
         }
         case CommandType::Quit:
