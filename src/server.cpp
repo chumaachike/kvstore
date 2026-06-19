@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <thread>
-#include <signal.h>
 
 #include "server.hpp"
 
@@ -107,14 +106,30 @@ void TCPServer::start(uint16_t port){
         close(server_fd_);
         throw std::runtime_error(std::string("listen: ") + std::strerror(errno));
     }  
-    signal(SIGPIPE, SIG_IGN);
-     
-    while (true){
-        int client_fd = accept_client();
-        std::cout<<"Client connected ID: "<< client_fd << "\n";
-        std::thread(&TCPServer::handle_client, this, client_fd).detach();
-    }
     
+    running_ = true;
+     
+    while (running_){
+        int client_fd;
+        try {
+             client_fd = accept_client();
+        }catch (...){
+            if (!running_) break;
+            throw;
+        }
+        {
+             std::lock_guard lock(clients_mutex_);
+             client_fds_.insert(client_fd);
+        }
+       
+        std::cout<<"Client connected ID: "<< client_fd << "\n";
+        client_threads_.emplace_back(&TCPServer::handle_client, this, client_fd);
+    }
+    for (auto& thread : client_threads_){
+        if(thread.joinable()){
+            thread.join();
+        }
+    }
 }
 
 int TCPServer::accept_client(){
@@ -130,27 +145,46 @@ int TCPServer::accept_client(){
 }
 
 void TCPServer::handle_client(int client_fd){
-    while (true){
+    while (running_){
         auto command_line = recv_line(client_fd);
 
         if (!command_line){
-            std::cerr << "Client disconnected\n";
-            close(client_fd);
-            return;
+            break;
         }
 
         auto result = executor.execute(*command_line);
 
         if (!send_all(client_fd, result.response.c_str(), result.response.size())){
-            std::cerr << "Failed to send response\n";
-            close(client_fd);
-            return;
+            break;
         }
         
         if (result.status == CommandStatus::Quit){
-            std::cout << "Client: " << client_fd << " quit\n";
-            close(client_fd);
-            return;
+            break;
         }
     }
+    {
+        std::lock_guard lock(clients_mutex_);
+        client_fds_.erase(client_fd);
+    }
+    close(client_fd);
+    std::cerr << "Client disconnected: " << client_fd << "\n";
+}
+
+void TCPServer::stop() {
+    running_ = false;
+
+    if (server_fd_ != -1) {
+        shutdown(server_fd_, SHUT_RDWR);
+        close(server_fd_);
+        server_fd_ = -1;
+    }
+
+    std::lock_guard lock(clients_mutex_);
+
+    for (int fd : client_fds_) {
+        shutdown(fd, SHUT_RDWR);
+        close(fd);
+    }
+
+    client_fds_.clear();
 }
