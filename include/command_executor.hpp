@@ -26,5 +26,4 @@ private:
     KVStore& store;
     Parser parser;
     AOFLogger* logger;
-    std::string handle_set(const std::vector<std::string>& args);
 };
